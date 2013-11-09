@@ -1,0 +1,29 @@
+<package>
+  <name>cob_mobile_manipulation</name>
+  <version>0.5.0</version>
+  <description>The cob_mobile_manipulation stack includes packages that provide mobile manipulation capabilities for Care-O-bot.</description>
+  <maintainer email="felix.messmer@ipa.fraunhofer.de">Maintained by Felix Messmer</maintainer>
+
+  <license>BSD</license>
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_mobile_manipulation/</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_mobile_manipulation/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_mobile_manipulation</url>
+
+  <author>Maintained by Felix Messmer</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>cob_mmcontroller</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+
+
+
+</package>
