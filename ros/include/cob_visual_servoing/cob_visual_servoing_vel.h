@@ -25,29 +25,28 @@
  *   This package provides visual servoing for the Care-O-bot
  *
  ****************************************************************/
-#ifndef COB_VISUAL_SERVOING_H
-#define COB_VISUAL_SERVOING_H
+#ifndef COB_VISUAL_SERVOING_VEL_H
+#define COB_VISUAL_SERVOING_VEL_H
 
 #include <ros/ros.h>
 
 #include <std_msgs/Float64.h>
 #include <sensor_msgs/JointState.h>
 #include <cob_srvs/Trigger.h>
-#include <controller_manager_msgs/SwitchController.h>
 
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainfksolvervel_recursive.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr.hpp>
 #include <kdl/jntarray.hpp>
+#include <kdl/jntarrayvel.hpp>
 #include <kdl/frames.hpp>
 
-class CobVisualServoing
+class CobVisualServoingVel
 {
 private:
 	ros::NodeHandle nh_;
-	
-	ros::ServiceClient switch_controller_client;
 	
 	ros::ServiceServer serv_start;
 	ros::ServiceServer serv_stop;
@@ -65,11 +64,13 @@ private:
 	KDL::Chain chain_lookat_;
 	
 	KDL::ChainFkSolverPos_recursive* p_fksolver_pos_arm_;
-	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_arm_;
+	KDL::ChainFkSolverVel_recursive* p_fksolver_vel_arm_;
 	KDL::ChainIkSolverPos_NR* p_iksolver_pos_arm_;
+	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_arm_;
 	KDL::ChainFkSolverPos_recursive* p_fksolver_pos_lookat_;
-	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_lookat_;
+	KDL::ChainFkSolverVel_recursive* p_fksolver_vel_lookat_;
 	KDL::ChainIkSolverPos_NR* p_iksolver_pos_lookat_;
+	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_lookat_;
 	
 	
 	
@@ -78,8 +79,8 @@ private:
 	
 	
 public:
-	CobVisualServoing() {;}
-	~CobVisualServoing();
+	CobVisualServoingVel() {;}
+	~CobVisualServoingVel();
 	
 	void initialize();
 	void run();
