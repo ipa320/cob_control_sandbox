@@ -20,6 +20,7 @@
 
 
   <!-- Dependencies needed after this package is compiled. -->
+  <!--run_depend>cob_articulation_controller</run_depend-->
   <run_depend>cob_mmcontroller</run_depend>
   <run_depend>cob_visual_servoing</run_depend>
 
