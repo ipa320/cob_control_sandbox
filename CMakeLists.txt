@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_mmcontroller)
 
 
-find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs geometry_msgs trajectory_msgs visualization_msgs nav_msgs cob_srvs actionlib actionlib_msgs eigen_conversions)
+find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs geometry_msgs nav_msgs trajectory_msgs cob_srvs actionlib actionlib_msgs kdl_parser kdl_conversions orocos_kdl eigen_conversions)
+
 
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
@@ -19,11 +20,11 @@ add_definitions(${EIGEN_DEFINITIONS})
 ###################################
 
 catkin_package(
-    DEPENDS rospy roscpp std_msgs geometry_msgs trajectory_msgs visualization_msgs nav_msgs cob_srvs actionlib actionlib_msgs
+    DEPENDS rospy roscpp std_msgs geometry_msgs trajectory_msgs nav_msgs cob_srvs actionlib actionlib_msgs
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO
     LIBRARIES # TODO
-)
+) 
 
 ###########
 ## Build ##
@@ -32,7 +33,7 @@ catkin_package(
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 add_executable(cob_config_controller src/cob_config_controller.cpp src/augmented_solver.cpp)
-add_dependencies(cob_config_controller ${PROJECT_NAME}_gencpp)
+target_link_libraries(cob_config_controller ${catkin_LIBRARIES})
 #add_executable(cob_spnav_filter src/cob_spnav_filter.cpp)
 
 
