@@ -40,40 +40,64 @@
   <!--   <run_depend>message_runtime</run_depend> -->
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
+
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
+  
   <build_depend>rospy</build_depend>
+  <build_depend>roscpp</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>pr2_controllers_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>kdl_parser</build_depend>
+  <build_depend>kdl_conversions</build_depend>
+  <build_depend>orocos_kdl</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
+  <build_depend>eigen_conversions</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>
-  <!--build_depend>articulation_msgs</build_depend-->
+  <build_depend>cob_srvs</build_depend>
+  <build_depend>brics_actuator</build_depend>
+  <build_depend>cob_mmcontroller</build_depend>
   
   <!-- ToDo: add necessary dependencies!!! -->
+
   
-  
-  
-  <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
+  <run_depend>roscpp</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>pr2_controllers_msgs</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>kdl_parser</run_depend>
+  <run_depend>kdl_converisons</run_depend>
+  <run_depend>orocos_kdl</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
+  <run_depend>eigen_conversions</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>actionlib_msgs</run_depend>
-  <!--run_depend>articulation_msgs</run_depend-->
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>brics_actuator</run_depend>
+  <run_depend>cob_mmcontroller</run_depend>
   
   <!-- ToDo: add necessary dependencies!!! -->
   
   
 
 
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- You can specify that this package is a metapackage here: -->
-    <!-- <metapackage/> -->
-
-    <!-- Other tools can request additional information be placed here -->
 
   </export>
+
+  
 </package>

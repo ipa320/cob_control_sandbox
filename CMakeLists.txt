@@ -5,9 +5,8 @@ project(cob_articulation_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp rospy message_generation std_msgs geometry_msgs actionlib actionlib_msgs #articulation_msgs
+   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs trajectory_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser kdl_conversions orocos_kdl tf tf_conversions eigen_conversions
 )
-
 
 
 ## Note: The files of this package have been moved from cob_mmcontroller
@@ -21,6 +20,9 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+add_definitions(${EIGEN_DEFINITIONS})
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -53,26 +55,33 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(DIRECTORY msg
+   FILES
+   ArticulatedObjectMsg.msg
+   ModelMsg.msg
+   ParamMsg.msg
+   TrackMsg.msg
+ )
 
 ## Generate services in the 'srv' folder
  add_service_files(DIRECTORY srv
   FILES
-  #CartCollectorPrior.srv 
-  #MoveModel.srv
-  #MovePrismatic.srv
-  #MoveRotational.srv
+  AlignModelSrv.srv
+  ArticulatedObjectSrv.srv
+  CartCollectorPrior.srv 
+  GetModelPriorSrv.srv
+  MoveModel.srv
+  MovePrismatic.srv
+  MoveRotational.srv
   RecordTrack.srv
+  SetModelPriorSrv.srv
+  TrackModelSrv.srv
  )
 
 # Generate actions in the 'action' folder
  add_action_files(DIRECTORY action
   FILES
-  #ArticulationModel.action 
+  ArticulationModel.action 
   LearnModelPrior.action
   MoveAndRecord.action
   MoveAndRecordVel.action
@@ -83,7 +92,7 @@ find_package(catkin REQUIRED COMPONENTS
 # Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   std_msgs geometry_msgs actionlib_msgs #articulation_msgs
+   std_msgs geometry_msgs sensor_msgs nav_msgs trajectory_msgs visualization_msgs actionlib_msgs 
  )
 
 ###################################
@@ -95,12 +104,13 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES cob_articulation_controller
-#  CATKIN_DEPENDS roscpp rospy
-#  DEPENDS system_lib
-)
+    DEPENDS rospy roscpp std_msgs geometry_msgs trajectory_msgs nav_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS # TODO
+    LIBRARIES # TODO
+) 
 
 ###########
 ## Build ##
@@ -124,6 +134,13 @@ include_directories(
 #add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
 #add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
 
+add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
+add_dependencies(cob_cartesian_trajectories ${PROJECT_NAME}_gencpp)
+target_link_libraries(cob_cartesian_trajectories ${catkin_LIBRARIES})
+
+add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
+add_dependencies(cob_cartesian_trajectories_PID ${PROJECT_NAME}_gencpp)
+target_link_libraries(cob_cartesian_trajectories_PID ${catkin_LIBRARIES})
 
 
 ## Add cmake target dependencies of the executable/library

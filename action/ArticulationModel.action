@@ -1,5 +1,5 @@
 # Define the goal
-articulation_msgs/ModelMsg model
+cob_articulation_controller/ModelMsg model
 duration target_duration
 ---
 # Define the result

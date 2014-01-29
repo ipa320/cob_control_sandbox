@@ -1,4 +1,4 @@
-articulation_msgs/ParamMsg[] params
+cob_articulation_controller/ParamMsg[] params
 duration target_duration
 ---
 bool success

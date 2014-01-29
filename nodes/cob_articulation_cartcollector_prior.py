@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 
 from geometry_msgs.msg import Pose, PoseStamped
-from cob_mmcontroller.srv import *
-from articulation_msgs.msg import ModelMsg
-from articulation_msgs.srv import *
+from cob_articulation_controller.msg import ModelMsg
+from cob_articulation_controller.srv import *
 
 
 class cob_articulation_cartcollector_prior:

@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 import actionlib
 
-from cob_mmcontroller.cob_articulation_models_prior import *
+from cob_articulation_controller.cob_articulation_models_prior import *
 
 class cob_move_articulation_model_prior:
     def __init__(self):

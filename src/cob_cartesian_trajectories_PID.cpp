@@ -1,4 +1,4 @@
-#include <cob_mmcontroller/cob_cartesian_trajectories_PID.h>
+#include <cob_articulation_controller/cob_cartesian_trajectories_PID.h>
 
 cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveModel", boost::bind(&cob_cartesian_trajectories::moveModelActionCB, this, _1), false)
 {
@@ -18,8 +18,8 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveMod
     serv_model = n.advertiseService("/mm/move_model", &cob_cartesian_trajectories::moveModelCB, this);       // new service to work with models
     map_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
     twist_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);   // publish twist to be visualized inj rviz
-    track_pub_ = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                 // publish generated trajectory for debugging
-    model_pub_ = n.advertise<articulation_msgs::ModelMsg>("/model", 1);                 // publish given model for debugging
+    track_pub_ = n.advertise<cob_articulation_controller::TrackMsg>("/track", 1);       // publish generated trajectory for debugging
+    model_pub_ = n.advertise<cob_articulation_controller::ModelMsg>("/model", 1);       // publish given model for debugging
     bRun = false;
     as_model_.start();
     targetDuration = 0;
@@ -160,9 +160,9 @@ void cob_cartesian_trajectories::jointStateCallback(const sensor_msgs::JointStat
 
 
 // action for model 
-void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal)
+void cob_cartesian_trajectories::moveModelActionCB(const cob_articulation_controller::ArticulationModelGoalConstPtr& goal)
 {
-    articulation_msgs::ModelMsg pub_model;
+    cob_articulation_controller::ModelMsg pub_model;
     //tf broadcaster 
     tf::Transform transform_articulation;
 
@@ -213,7 +213,7 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
     return;
 }
 
-bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response)    //TODO // prismatic callback
+bool cob_cartesian_trajectories::movePriCB(cob_articulation_controller::MovePrismatic::Request& request, cob_articulation_controller::MovePrismatic::Response& response)    //TODO // prismatic callback
 {
     mode = "prismatic";
     targetDuration = request.target_duration.toSec();
@@ -222,7 +222,7 @@ bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Requ
     return start();
 }
 
-bool cob_cartesian_trajectories::moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response)    //TODO // rotational callback
+bool cob_cartesian_trajectories::moveRotCB(cob_articulation_controller::MoveRotational::Request& request, cob_articulation_controller::MoveRotational::Response& response)    //TODO // rotational callback
 {
     mode = "rotational";
     targetDuration = request.target_duration.toSec();
@@ -231,7 +231,7 @@ bool cob_cartesian_trajectories::moveRotCB(cob_mmcontroller::MoveRotational::Req
     return start();
 }
 
-/*bool cob_cartesian_trajectories::moveTrajCB(cob_mmcontroller::MoveTrajectory::Request& request, cob_mmcontroller::MoveTrajectory::Response& response)   // TODO // trajectory callback
+/*bool cob_cartesian_trajectories::moveTrajCB(cob_articulation_controller::MoveTrajectory::Request& request, cob_articulation_controller::MoveTrajectory::Response& response)   // TODO // trajectory callback
 {
     mode = "trajectory";
     targetDuration = request.target_duration.toSec();
@@ -239,7 +239,7 @@ bool cob_cartesian_trajectories::moveRotCB(cob_mmcontroller::MoveRotational::Req
     return start();
 }*/
 
-bool cob_cartesian_trajectories::moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response)  //TODO // model callback
+bool cob_cartesian_trajectories::moveModelCB(cob_articulation_controller::MoveModel::Request& request, cob_articulation_controller::MoveModel::Response& response)  //TODO // model callback
 {
     mode = "model";
     targetDuration = request.target_duration.toSec();
@@ -906,7 +906,7 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
 // publish generated trajectory
 void cob_cartesian_trajectories::pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub)
 {
-    articulation_msgs::TrackMsg track;
+    cob_articulation_controller::TrackMsg track;
     // set up a new TrackMsg
     if (track_map.find(track_id) == track_map.end())
     {

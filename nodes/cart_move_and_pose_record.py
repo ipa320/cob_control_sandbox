@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 import actionlib
 
 from geometry_msgs.msg import *
-from cob_mmcontroller.msg import *
+from cob_articulation_controller.msg import *
 
 
 class cart_move_and_pose_record:

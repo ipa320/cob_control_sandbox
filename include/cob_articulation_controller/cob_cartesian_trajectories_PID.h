@@ -1,41 +1,41 @@
 #include "ros/ros.h"
-#include <urdf/model.h>
 
-#include "kinematics_msgs/GetPositionIK.h"
-#include <kdl_parser/kdl_parser.hpp>
+#include <math.h>
+#include <map>
+
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseArray.h>
+#include <sensor_msgs/JointState.h>
+#include <nav_msgs/Odometry.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <cob_srvs/Trigger.h>
+
 #include <tf_conversions/tf_kdl.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
-#include <sensor_msgs/JointState.h>
-#include <cob_srvs/Trigger.h>
-#include <trajectory_msgs/JointTrajectory.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/PoseArray.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Pose.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <math.h>
-#include <map>
 #include <Eigen/Geometry>
 
-#include <articulation_msgs/ParamMsg.h>
-#include <articulation_msgs/TrackMsg.h>
-#include <articulation_msgs/ModelMsg.h>
-#include <cob_mmcontroller/MoveModel.h>
-#include <cob_mmcontroller/MovePrismatic.h>
-#include <cob_mmcontroller/MoveRotational.h>
-
+#include <urdf/model.h>
+#include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
-#include <cob_mmcontroller/augmented_solver.h>
 #include <kdl/frames_io.hpp>
 #include <kdl/jntarray.hpp>
 #include <kdl/frames.hpp>
 
-#include <cob_mmcontroller/ArticulationModelAction.h>
+#include <cob_articulation_controller/ParamMsg.h>
+#include <cob_articulation_controller/TrackMsg.h>
+#include <cob_articulation_controller/ModelMsg.h>
+#include <cob_articulation_controller/MoveModel.h>
+#include <cob_articulation_controller/MovePrismatic.h>
+#include <cob_articulation_controller/MoveRotational.h>
+#include <cob_articulation_controller/ArticulationModelAction.h>
 #include <actionlib/server/simple_action_server.h>
+
+
 
 using namespace KDL;
 using namespace std;
@@ -47,7 +47,7 @@ public:
 
 private:
     ros::NodeHandle n;
-    actionlib::SimpleActionServer<cob_mmcontroller::ArticulationModelAction> as_model_;
+    actionlib::SimpleActionServer<cob_articulation_controller::ArticulationModelAction> as_model_;
     
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void cartTwistStateCallback(const geometry_msgs::Twist::ConstPtr& msg);
@@ -83,14 +83,14 @@ private:
     void sendMarkers();
 
     // action callbacks
-    void moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal);
+    void moveModelActionCB(const cob_articulation_controller::ArticulationModelGoalConstPtr& goal);
     
     // service callbacks
     //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
     //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
-    bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);
-    bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);
-    bool moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response);
+    bool movePriCB(cob_articulation_controller::MovePrismatic::Request& request, cob_articulation_controller::MovePrismatic::Response& response);
+    bool moveRotCB(cob_articulation_controller::MoveRotational::Request& request, cob_articulation_controller::MoveRotational::Response& response);
+    bool moveModelCB(cob_articulation_controller::MoveModel::Request& request, cob_articulation_controller::MoveModel::Response& response);
 
     bool start();
     
@@ -131,18 +131,18 @@ private:
 
     // action
     bool success;                       // status of finished action
-    cob_mmcontroller::ArticulationModelFeedback feedback_;
-    cob_mmcontroller::ArticulationModelResult result_;
+    cob_articulation_controller::ArticulationModelFeedback feedback_;
+    cob_articulation_controller::ArticulationModelResult result_;
 
     string mode;                        // prismatic, rotational, trajectory, model
-    std::vector<articulation_msgs::ParamMsg> params;    // articulation parameters
+    std::vector<cob_articulation_controller::ParamMsg> params;    // articulation parameters
     std::vector<geometry_msgs::Pose> track;     // trajectory
 
     geometry_msgs::PoseStamped current_hinge;
 
     // visualization
     std::vector<geometry_msgs::Point> trajectory_points;
-    map<int, articulation_msgs::TrackMsg> track_map;     //stores track_ids and tracks for publishing
+    std::map<int, cob_articulation_controller::TrackMsg> track_map;     //stores track_ids and tracks for publishing
     ros::Time pub_timer;
     int pub_counter;
 

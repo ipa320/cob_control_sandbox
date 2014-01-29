@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 
 import rosbag
 
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion 
-from articulation_msgs.msg import *
-from articulation_msgs.srv import *
+from cob_articulation_controller.msg import *
+from cob_articulation_controller.srv import *
 from articulation_models.track_utils import *
-from cob_mmcontroller.srv import *
+
 
 import copy
 import os

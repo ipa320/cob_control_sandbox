@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 import actionlib
 
@@ -9,9 +9,8 @@ import rosbag
 import sys
 from optparse import OptionParser
 
-from cob_mmcontroller.msg import *
-from cob_mmcontroller.srv import *
-from articulation_msgs.msg import ParamMsg
+from cob_articulation_controller.msg import *
+from cob_articulation_controller.srv import *
 
 if __name__ == '__main__':
 

@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 import actionlib
 
 from optparse import OptionParser
 
-from cob_mmcontroller.msg import *
+from cob_articulation_controller.msg import *
 
 def main():
     parser = OptionParser()

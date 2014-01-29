@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 import actionlib
 
@@ -12,10 +12,8 @@ import tf_conversions
 import PyKDL
 
 
-from articulation_msgs.msg import *
-from articulation_msgs.srv import *
-from cob_mmcontroller.msg import *
-from cob_mmcontroller.srv import *
+from cob_articulation_controller.msg import *
+from cob_articulation_controller.srv import *
 from cob_srvs.srv import *
 
 class cob_articulation_models_prior(object):

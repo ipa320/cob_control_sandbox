@@ -1,27 +1,27 @@
 #include "ros/ros.h"
-#include "kinematics_msgs/GetPositionIK.h"
-#include <kdl_parser/kdl_parser.hpp>
+
 #include <geometry_msgs/Pose.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
-#include <tf_conversions/tf_kdl.h>
-#include <sensor_msgs/JointState.h>
-#include <cob_srvs/Trigger.h>
-#include <trajectory_msgs/JointTrajectory.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseArray.h>
+#include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Pose.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <visualization_msgs/Marker.h>
+#include <cob_srvs/Trigger.h>
 
+#include <tf_conversions/tf_kdl.h>
 
+#include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
-#include <cob_mmcontroller/augmented_solver.h>
 #include <kdl/frames_io.hpp>
 #include <kdl/jntarray.hpp>
 #include <kdl/frames.hpp>
 
-#include <cob_mmcontroller/OpenFridgeAction.h>
 #include <actionlib/server/simple_action_server.h>
+#include <cob_articulation_controller/OpenFridgeAction.h>
+
+
 
 using namespace KDL;
 
@@ -33,14 +33,14 @@ public:
 
 private:
 	ros::NodeHandle n;
-	actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as_;
-	actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
+	actionlib::SimpleActionServer<cob_articulation_controller::OpenFridgeAction> as_;
+	actionlib::SimpleActionServer<cob_articulation_controller::OpenFridgeAction> as2_;
 	KDL::Twist getTwist(double dt, Frame F_current);
 	void getSollLinear(double dt, double &sollx, double &solly, double &sollangle);
 	void getSollCircular(double dt, double &sollx, double &solly, double &sollangle);
 	void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
-	void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
-	void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
+	void moveCircActionCB(const cob_articulation_controller::OpenFridgeGoalConstPtr& goal);
+	void moveLinActionCB(const cob_articulation_controller::OpenFridgeGoalConstPtr& goal);
 	bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	void sendMarkers();
@@ -107,7 +107,7 @@ void cob_cartesian_trajectories::sendMarkers()
 	map_pub_.publish(marker);
 }
 
-void cob_cartesian_trajectories::moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal)
+void cob_cartesian_trajectories::moveCircActionCB(const cob_articulation_controller::OpenFridgeGoalConstPtr& goal)
 {
 	mode = "circular";
 	current_hinge = goal->hinge;
@@ -123,7 +123,7 @@ void cob_cartesian_trajectories::moveCircActionCB(const cob_mmcontroller::OpenFr
 	return;
 
 }
-void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal)
+void cob_cartesian_trajectories::moveLinActionCB(const cob_articulation_controller::OpenFridgeGoalConstPtr& goal)
 {
 	mode = "linear";
 	if(start())
@@ -167,7 +167,7 @@ bool cob_cartesian_trajectories::start()
 		currentDuration = 0;
 		trajectory_points.clear();
 		return true;
-	}	
+	}
 }
 
 //Pose is global pose with odometry

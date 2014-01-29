@@ -8,6 +8,6 @@
         <param name="base_to_arm_ratio" value="1.0" />
     </node>
 
-    <node pkg="cob_mmcontroller" type="cart_move_and_vel_record.py" name="cart_move_and_vel_record" cwd="node" output="screen"/>
+    <node pkg="cob_articulation_controller" type="cart_move_and_vel_record.py" name="cart_move_and_vel_record" cwd="node" output="screen"/>
 
 </launch>

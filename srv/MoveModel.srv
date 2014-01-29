@@ -1,5 +1,5 @@
-articulation_msgs/ModelMsg model	# single kinematic model
-duration target_duration	# duration of movement
+cob_articulation_controller/ModelMsg model    # single kinematic model
+duration target_duration                      # duration of movement
 ---
 bool success
 string error_message

@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_mmcontroller')
+import roslib; roslib.load_manifest('cob_articulation_controller')
 import rospy
 import actionlib
 
-from cob_mmcontroller.msg import *
+from cob_articulation_controller.msg import *
 
 if __name__ == '__main__':
     rospy.init_node('openfridge_client')

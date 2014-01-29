@@ -8,7 +8,7 @@
         <param name="base_to_arm_ratio" value="0.5" />
     </node>
 
-    <node pkg="cob_mmcontroller" type="cob_cartesian_trajectories_PID" name="cob_cartesian_trajectories_PID" cwd="node" respawn="false" output="screen">
+    <node pkg="cob_articulation_controller" type="cob_cartesian_trajectories_PID" name="cob_cartesian_trajectories_PID" cwd="node" respawn="false" output="screen">
         <param name="p_gain" value="1.0" />
         <param name="i_gain" value="0.000" /> <!--"0.0002" /-->
         <param name="d_gain" value="0.001" />
@@ -16,9 +16,9 @@
         
     <node pkg="articulation_models" type="model_learner_prior" name="model_learner_prior" cwd="node"/>
 
-    <node pkg="cob_mmcontroller" type="cob_articulation_cartcollector_prior.py" name="cob_articulation_cartcollector_prior" cwd="node"/>
+    <node pkg="cob_articulation_controller" type="cob_articulation_cartcollector_prior.py" name="cob_articulation_cartcollector_prior" cwd="node"/>
         <!--param name="sigma_orientation" value="0.5" /-->
 
-    <node pkg="cob_mmcontroller" type="cob_learn_model_prior.py" name="cob_learn_model_prior" cwd="node" output="screen"/>
+    <node pkg="cob_articulation_controller" type="cob_learn_model_prior.py" name="cob_learn_model_prior" cwd="node" output="screen"/>
 
 </launch>
