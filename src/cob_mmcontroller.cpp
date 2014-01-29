@@ -1,9 +1,10 @@
-
 #include <ros/ros.h>
-#include <cob_srvs/Trigger.h>
-#include <trajectory_msgs/JointTrajectory.h>
+
 #include <geometry_msgs/Twist.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <cob_srvs/Trigger.h>
+
 #include <kdl/chain.hpp>
 #include <kdl/chainfksolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
