@@ -5,9 +5,19 @@ project(cob_articulation_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
+  roscpp rospy message_generation std_msgs geometry_msgs actionlib actionlib_msgs #articulation_msgs
 )
+
+
+
+## Note: The files of this package have been moved from cob_mmcontroller
+## ToDo:
+## - update files, i.e. new file locations!!!
+## - add required dependencies to package.xml!!!
+## - configure this CMakeLists.txt accordingly!!!
+
+
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -50,24 +60,31 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(DIRECTORY srv
+  FILES
+  #CartCollectorPrior.srv 
+  #MoveModel.srv
+  #MovePrismatic.srv
+  #MoveRotational.srv
+  RecordTrack.srv
+ )
 
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+# Generate actions in the 'action' folder
+ add_action_files(DIRECTORY action
+  FILES
+  #ArticulationModel.action 
+  LearnModelPrior.action
+  MoveAndRecord.action
+  MoveAndRecordVel.action
+  MoveModelPrior.action
+  OpenFridge.action
+ )
 
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+# Generate added messages and services with any dependencies listed here
+ generate_messages(
+   DEPENDENCIES
+   std_msgs geometry_msgs actionlib_msgs #articulation_msgs
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -91,7 +108,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
@@ -101,8 +118,13 @@ include_directories(
 #   src/${PROJECT_NAME}/cob_articulation_controller.cpp
 # )
 
+
+
 ## Declare a cpp executable
-# add_executable(cob_articulation_controller_node src/cob_articulation_controller_node.cpp)
+#add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
+#add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
+
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
