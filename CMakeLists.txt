@@ -41,6 +41,9 @@ target_link_libraries(cob_mmcontroller ${catkin_LIBRARIES})
 add_executable(cob_spnav_filter src/cob_spnav_filter.cpp)
 target_link_libraries(cob_spnav_filter ${catkin_LIBRARIES})
 
+add_executable(kuka_test src/kuka_test.cpp src/augmented_solver.cpp)
+target_link_libraries(kuka_test ${catkin_LIBRARIES})
+
 
 ###########
 ## Test ##

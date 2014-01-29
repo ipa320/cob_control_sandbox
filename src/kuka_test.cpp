@@ -24,17 +24,15 @@
 #include <kdl/velocityprofile_trap.hpp>
 #include <kdl/trajectory_segment.hpp>
 
-#include "augmented_solver.h"
+#include "cob_mmcontroller/augmented_solver.h"
 
 
 
-using namespace std; 
-using namespace KDL;
 KDL::Chain chain;
 KDL::Chain chain_base_arm0;
 KDL::JntArray VirtualQ;
 KDL::JntArray q;
-Frame F_start;
+KDL::Frame F_start;
 bool started = false;
 KDL::Twist extTwist;
 KDL::Frame basePoseOdom;
@@ -45,9 +43,9 @@ double lastgrady = 0.0;
 double mytime;
 ros::Time last2;
 
-ChainFkSolverPos_recursive *  fksolver1;//Forward position solver
+KDL::ChainFkSolverPos_recursive *  fksolver1;//Forward position solver
 augmented_solver * iksolver1v;//Inverse velocity solver
-ChainIkSolverPos_NR * iksolverpos;//Maximum 100 iterations, stop at accuracy 1e-6
+KDL::ChainIkSolverPos_NR * iksolverpos;//Maximum 100 iterations, stop at accuracy 1e-6
 
 
 bool RunSyncMM = false;
@@ -57,13 +55,13 @@ ros::Publisher debug_cart_pub_;
 
 
 
-JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions)
+KDL::JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions)
 {
-    JntArray q_temp(7);
+    KDL::JntArray q_temp(7);
     int count = 0;
     for(unsigned int i = 0; i < names.size(); i++)
     {
-        if(strncmp(names[i].c_str(), "arm_", 4) == 0)
+        if(std::strncmp(names[i].c_str(), "arm_", 4) == 0)
         {
             q_temp(count) = positions[i];
             count++;
@@ -100,7 +98,7 @@ void baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg)
         double vy = msg->twist.twist.linear.y;
         double omega = msg->twist.twist.angular.z;
         //std::cout << omega << "\n";
-        Frame F_ist;
+        KDL::Frame F_ist;
         fksolver1->JntToCart(q, F_ist, -1);
         //transformational part of base rotation
         KDL::Vector twist_Trans = (KDL::Rotation::EulerZYX(-omega, 0.0, 0.0) * F_ist.p) - F_ist.p;
@@ -111,10 +109,11 @@ void baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg)
         KDL::Rotation T_Rot_AB_RB(-0.683013,0.258819,-0.683013,
                         0.183013,0.965926,0.183013,
                         0.707107,0.00000,-0.707107);
-        Frame F_armbase;
-        ChainFkSolverPos_recursive fksolver_base_armv0(chain_base_arm0);//Forward position solver
+        KDL::Frame F_armbase;
+        KDL::JntArray q_in;
+        KDL::ChainFkSolverPos_recursive fksolver_base_armv0(chain_base_arm0);//Forward position solver
         //std::cout << chain_base_arm0.getNrOfJoints() << "\n";
-        fksolver_base_armv0.JntToCart(NULL, F_armbase, -1);
+        fksolver_base_armv0.JntToCart(q_in, F_armbase, -1);
         //std::cout << F_armbase << "\n";
         // create transformation frame
         //  T_Trans.ReverseSign();
@@ -146,7 +145,7 @@ KDL::Twist getTwist(KDL::Frame F_ist)
     }    
 }
 
-KDL::Twist getTrajectoryTwist(double dt, Frame F_current)
+KDL::Twist getTrajectoryTwist(double dt, KDL::Frame F_current)
 {
     KDL::Twist circ;
     std::cout << "Time is " << dt << "\n";
@@ -205,7 +204,7 @@ void Manipulability_potentialfield_lookup()
     double gradx;
     double grady;
 
-    Frame F_ist;
+    KDL::Frame F_ist;
     fksolver1->JntToCart(q, F_ist, -1);
 
     //std::cerr << "GlobPos: " << glcartpos << "\n";
@@ -262,7 +261,7 @@ bool SyncMMTrigger(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Respo
     return true;
 }
 
-void sendVel(JntArray q_t, JntArray q_dot)
+void sendVel(KDL::JntArray q_t, KDL::JntArray q_dot)
 {
     ros::Time now = ros::Time::now();
     double dt = now.toSec() - last.toSec();
@@ -310,13 +309,17 @@ void controllerStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
         unsigned int nj = chain.getNrOfJoints();
         //std::cout << "Joints: " << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";
         //std::cout << "VirtualJoints: " << VirtualQ(0) << " " << VirtualQ(1) << " " << VirtualQ(2) << " " << VirtualQ(3) << " " << VirtualQ(4) << " " << VirtualQ(5) << " " << VirtualQ(6)  << "\n";    
-        JntArray q_out(7);
-        JntArray q_base(3);
-        JntArray q_dot_base(3);
-        Frame F_ist;
+        KDL::JntArray q_out(7);
+        KDL::JntArray q_base(3);
+        KDL::JntArray q_dot_base(3);
+        KDL::Frame F_ist;
         fksolver1->JntToCart(q, F_ist);
         KDL::Twist combined_twist = extTwist; //getTrajectoryTwist(mytime, F_ist);
-        int ret = iksolver1v->CartToJnt(q, q_base, combined_twist, q_out, q_dot_base);
+        
+        ///no matching function for call to ‘augmented_solver::CartToJnt with the parameters below
+        //int ret = iksolver1v->CartToJnt(q, q_base, combined_twist, q_out, q_dot_base);
+        
+        int ret = 0;
         if(ret >= 0)
         {
             sendVel(q, q_out);
@@ -340,7 +343,7 @@ int main(int argc, char **argv)
     KDL::Tree my_tree;
     ros::NodeHandle node;
     std::string robot_desc_string;
-    node.param("/robot_description", robot_desc_string, string());
+    node.param("/robot_description", robot_desc_string, std::string());
     if (!kdl_parser::treeFromString(robot_desc_string, my_tree))
     {
         ROS_ERROR("Failed to construct kdl tree");
@@ -349,9 +352,9 @@ int main(int argc, char **argv)
     my_tree.getChain("base_link","arm_7_link", chain);
     my_tree.getChain("base_link","arm_0_link", chain_base_arm0);
 
-    fksolver1 = new ChainFkSolverPos_recursive(chain);//Forward position solver
+    fksolver1 = new KDL::ChainFkSolverPos_recursive(chain);//Forward position solver
     iksolver1v = new augmented_solver(chain);//Inverse velocity solver
-    //iksolverpos = new ChainIkSolverPos_NR(chain,&fksolver1,&iksolver1v,100,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
+    //iksolverpos = new KDL::ChainIkSolverPos_NR(chain,&fksolver1,&iksolver1v,100,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
     
     ros::Subscriber sub = n.subscribe("/joint_states", 1, controllerStateCallback);
     ROS_INFO("Blub");
