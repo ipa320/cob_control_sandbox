@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/JointState.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
@@ -31,9 +32,11 @@ private:
     KDL::Chain chain_;
     KDL::JntArray q_current;
     KDL::JntArray startposition_;
+    
 public:
-    trajectory_manager():as_(n_, "joint_trajectory_action", boost::bind(&trajectory_manager::executeTrajectory, this, _1)),
-    action_name_("joint_trajectory_action")
+    trajectory_manager():
+        as_(n_, "joint_trajectory_action", boost::bind(&trajectory_manager::executeTrajectory, this, _1)),
+        action_name_("joint_trajectory_action")
     {
         cart_vel_pub_ = n_.advertise<geometry_msgs::Twist>("cart_twist", 1);
         joint_pos_pub_ = n_.advertise<brics_actuator::JointPositions>("target_joint_pos", 1);
@@ -44,27 +47,28 @@ public:
         executing_ = false;
         KDL::Tree my_tree;
         std::string robot_desc_string;
-	    n_.param("/robot_description", robot_desc_string, std::string());
-	    if (!kdl_parser::treeFromString(robot_desc_string, my_tree))
-	    {
-	        ROS_ERROR("Failed to construct kdl tree");
-      	}
-      	my_tree.getChain("base_link","arm_7_link", chain_);
-      	fksolver1_ = new KDL::ChainFkSolverPos_recursive(chain_);
-      	q_current = KDL::JntArray(7);
-      	startposition_ = q_current;
-	}
-
-  void state_callback(const pr2_controllers_msgs::JointTrajectoryControllerStatePtr& message)
-  {
-    std::vector<double> positions = message->actual.positions;
-    for(unsigned int i = 0; i < positions.size(); i++)
-    {
-      q_current(i) = positions[i];
+        n_.param("/robot_description", robot_desc_string, std::string());
+        if (!kdl_parser::treeFromString(robot_desc_string, my_tree))
+        {
+            ROS_ERROR("Failed to construct kdl tree");
+        }
+        my_tree.getChain("base_link","arm_7_link", chain_);
+        fksolver1_ = new KDL::ChainFkSolverPos_recursive(chain_);
+        q_current = KDL::JntArray(7);
+        startposition_ = q_current;
     }
-  }
-  void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
-  {
+
+    void state_callback(const pr2_controllers_msgs::JointTrajectoryControllerStatePtr& message)
+    {
+        std::vector<double> positions = message->actual.positions;
+        for(unsigned int i = 0; i < positions.size(); i++)
+        {
+            q_current(i) = positions[i];
+        }
+    }
+    
+    void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
+    {
         ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
         if(!executing_)
         {
@@ -79,7 +83,7 @@ public:
         {
         }
         while(executing_)
-        	sleep(1);
+            sleep(1);
         as_.setSucceeded();
     }
     
@@ -89,7 +93,7 @@ public:
         {
             //calculate current cartpos
             KDL::Frame F_ist;
-		    fksolver1_->JntToCart(q_current, F_ist);
+            fksolver1_->JntToCart(q_current, F_ist);
             //calculate target cartpos;
             KDL::Frame F_target;
             KDL::JntArray q_target(traj_.points[current_point_].positions.size());
@@ -103,7 +107,7 @@ public:
             if(current_point_ != 0)
                 delta_time = traj_.points[current_point_].time_from_start.toSec() - traj_.points[current_point_-1].time_from_start.toSec();
             else
-            	delta_time = traj_.points[current_point_].time_from_start.toSec();
+                delta_time = traj_.points[current_point_].time_from_start.toSec();
 
             geometry_msgs::Twist trajectory_twist;
             
@@ -115,7 +119,7 @@ public:
             target_joint_state.position.resize(traj_.points[current_point_].positions.size());
             for (unsigned int i = 0; i < traj_.points[current_point_].positions.size(); i += 1)
             {
-            	target_joint_position.positions[i].unit = "rad";
+                target_joint_position.positions[i].unit = "rad";
                 //position = current_time_inbetween * distance_to_travel/overall_time_inbetween
                 target_joint_position.positions[i].value =  startposition_(i) + (traj_time_ * (traj_.points[current_point_].positions[i] - startposition_(i))/delta_time);
                 if(current_point_ != 0)
@@ -132,20 +136,20 @@ public:
             traj_time_ += 1./HZ;
             //std::cerr << ".";
             if(traj_time_ >= traj_.points[current_point_].time_from_start.toSec())
-			{
-				//std::cout << "DEBUG: time from start" << traj_.points[current_point_].time_from_start.toSec() << " , Traj_time: " << traj_time_ << "\n";
-				if(current_point_ == traj_.points.size()-1)
-				{
-					ROS_INFO("Trajecory finished");
-					executing_ = false;
-					return;
-				}
-				else
-				{
-					current_point_ +=1;
-					//ROS_INFO("Next Point in trajectory");
-				}
-			}
+            {
+                //std::cout << "DEBUG: time from start" << traj_.points[current_point_].time_from_start.toSec() << " , Traj_time: " << traj_time_ << "\n";
+                if(current_point_ == traj_.points.size()-1)
+                {
+                    ROS_INFO("Trajecory finished");
+                    executing_ = false;
+                    return;
+                }
+                else
+                {
+                    current_point_ +=1;
+                    //ROS_INFO("Next Point in trajectory");
+                }
+            }
         }
         
     }
@@ -164,8 +168,7 @@ int main(int argc, char ** argv)
         tm.run();
         ros::spinOnce();
         loop_rate.sleep();
-    }  
-	
+    }
 }
 
 

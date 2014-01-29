@@ -47,6 +47,8 @@ target_link_libraries(kuka_test ${catkin_LIBRARIES})
 add_executable(manipulability_publisher src/manipulability_publisher.cpp)
 target_link_libraries(manipulability_publisher ${catkin_LIBRARIES})
 
+add_executable(trajectory_manager src/trajectory_manager.cpp)
+target_link_libraries(trajectory_manager ${catkin_LIBRARIES})
 
 ###########
 ## Test ##
