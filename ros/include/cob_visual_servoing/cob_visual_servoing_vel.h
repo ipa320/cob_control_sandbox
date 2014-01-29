@@ -32,6 +32,7 @@
 
 #include <std_msgs/Float64.h>
 #include <sensor_msgs/JointState.h>
+#include <brics_actuator/JointVelocities.h>
 #include <cob_srvs/Trigger.h>
 
 #include <kdl_parser/kdl_parser.hpp>
@@ -53,9 +54,10 @@ private:
 	
 	ros::Subscriber js_sub;
 	
-	ros::Publisher torso_lower_pub;
-	ros::Publisher torso_pan_pub;
-	ros::Publisher torso_upper_pub;
+	ros::Publisher torso_cmd_vel_pub;
+	//ros::Publisher torso_lower_pub;
+	//ros::Publisher torso_pan_pub;
+	//ros::Publisher torso_upper_pub;
 	
 	bool b_servoing;
 	unsigned int throttle_;
@@ -72,7 +74,7 @@ private:
 	KDL::ChainIkSolverPos_NR* p_iksolver_pos_lookat_;
 	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_lookat_;
 	
-	
+	std::vector<std::string> torso_joints_;		//later: use this for configuring visual servoing for 3DoF or 4DoF torso
 	
 	//helper functions
 	bool parseJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, KDL::JntArray& q, KDL::JntArray& q_dot);
