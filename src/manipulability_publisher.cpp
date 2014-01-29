@@ -8,28 +8,27 @@
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolverpos_nr.hpp>
+#include <kdl/chainjnttojacsolver.hpp>
 #include <kdl/jntarray.hpp>
 
-#include <cob_mmcontroller/augmented_solver.h>
+#include <Eigen/LU>
 
 
-using namespace std; 
-using namespace KDL;
 KDL::JntArray q;
 KDL::Jacobian jacobian(7);
 KDL::Chain chain;
 
-ChainJntToJacSolver * jacobiansolver;
+KDL::ChainJntToJacSolver * jacobiansolver;
 
 ros::Publisher manipulability_pub_;  //publish
 
-JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions)
+KDL::JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions)
 {
-    JntArray q_temp(7);
+    KDL::JntArray q_temp(7);
     int count = 0;
     for(unsigned int i = 0; i < names.size(); i++)
     {
-        if(strncmp(names[i].c_str(), "arm_", 4) == 0)
+        if(std::strncmp(names[i].c_str(), "arm_", 4) == 0)
         {
             q_temp(count) = positions[i];
             count++;
@@ -48,7 +47,7 @@ void controllerStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
     Eigen::Matrix<double,6,6> prod = jacobian.data * jacobian.data.transpose();
     float d = prod.determinant();
     std_msgs::Float64 f;
-    f.data = sqrt(d);
+    f.data = std::sqrt(d);
     manipulability_pub_.publish(f);
 }
 
@@ -59,7 +58,7 @@ int main(int argc, char **argv)
     KDL::Tree my_tree;
     ros::NodeHandle node;
     std::string robot_desc_string;
-    node.param("/robot_description", robot_desc_string, string());
+    node.param("/robot_description", robot_desc_string, std::string());
     if (!kdl_parser::treeFromString(robot_desc_string, my_tree)){
         ROS_ERROR("Failed to construct kdl tree");
         return false;

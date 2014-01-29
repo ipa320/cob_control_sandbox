@@ -44,6 +44,9 @@ target_link_libraries(cob_spnav_filter ${catkin_LIBRARIES})
 add_executable(kuka_test src/kuka_test.cpp src/augmented_solver.cpp)
 target_link_libraries(kuka_test ${catkin_LIBRARIES})
 
+add_executable(manipulability_publisher src/manipulability_publisher.cpp)
+target_link_libraries(manipulability_publisher ${catkin_LIBRARIES})
+
 
 ###########
 ## Test ##
