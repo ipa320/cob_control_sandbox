@@ -38,8 +38,8 @@ target_link_libraries(cob_config_controller ${catkin_LIBRARIES})
 add_executable(cob_mmcontroller src/cob_mmcontroller.cpp)
 target_link_libraries(cob_mmcontroller ${catkin_LIBRARIES})
 
-
-#add_executable(cob_spnav_filter src/cob_spnav_filter.cpp)
+add_executable(cob_spnav_filter src/cob_spnav_filter.cpp)
+target_link_libraries(cob_spnav_filter ${catkin_LIBRARIES})
 
 
 ###########
