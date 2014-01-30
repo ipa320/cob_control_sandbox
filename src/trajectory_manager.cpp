@@ -2,9 +2,9 @@
 
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/JointState.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
 #include <actionlib/server/simple_action_server.h>
-#include <pr2_controllers_msgs/JointTrajectoryAction.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
 #include <kdl/chain.hpp>
 #include <kdl/chainfksolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
@@ -22,7 +22,7 @@ private:
     ros::Publisher joint_pos_pub_;
     ros::Publisher joint_state_pub_;
     ros::Subscriber controller_state_;
-    actionlib::SimpleActionServer<pr2_controllers_msgs::JointTrajectoryAction> as_;
+    actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;
     std::string action_name_;
     bool executing_;
     trajectory_msgs::JointTrajectory traj_;
@@ -58,7 +58,7 @@ public:
         startposition_ = q_current;
     }
 
-    void state_callback(const pr2_controllers_msgs::JointTrajectoryControllerStatePtr& message)
+    void state_callback(const control_msgs::JointTrajectoryControllerStatePtr& message)
     {
         std::vector<double> positions = message->actual.positions;
         for(unsigned int i = 0; i < positions.size(); i++)
@@ -67,7 +67,7 @@ public:
         }
     }
     
-    void executeTrajectory(const pr2_controllers_msgs::JointTrajectoryGoalConstPtr &goal)
+    void executeTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
     {
         ROS_INFO("Received new goal trajectory with %d points",goal->trajectory.points.size());
         if(!executing_)

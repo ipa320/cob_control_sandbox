@@ -2,7 +2,7 @@
 
 #include <geometry_msgs/Twist.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
+#include <control_msgs/JointTrajectoryControllerState.h>
 #include <cob_srvs/Trigger.h>
 
 #include <kdl/chain.hpp>
@@ -58,7 +58,7 @@ public:
     void updateArmCommands();
 
     void topicCallback_CartVel(const geometry_msgs::Twist::ConstPtr& msg);
-    void topicCallback_ControllerState(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg);
+    void topicCallback_ControllerState(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg);
     bool srvCallback_Init(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res );
     bool srvCallback_Pause(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res );
     bool srvCallback_Stop(cob_srvs::Trigger::Request &req, cob_srvs::Trigger::Response &res );
@@ -129,7 +129,7 @@ void cob_mmcontroller::topicCallback_CartVel(const geometry_msgs::Twist::ConstPt
     m_bNewTwist = true;
 }
 
-void cob_mmcontroller::topicCallback_ControllerState(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg)
+void cob_mmcontroller::topicCallback_ControllerState(const control_msgs::JointTrajectoryControllerState::ConstPtr& msg)
 {
   m_CurrentConfig = msg->actual.positions;
   m_CurrentVels = msg->actual.velocities;

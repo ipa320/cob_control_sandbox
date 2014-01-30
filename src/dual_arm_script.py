@@ -3,21 +3,21 @@ import roslib; roslib.load_manifest('cob_mmcontroller')
 import rospy
 import actionlib
 import time
-from pr2_controllers_msgs.msg import *
-from cob_srvs.srv import *
+from trajectory_msgs.msg import *
+from control_msgs.msg import *
 from cob_actions.msg import *
 from cob_msgs.msg import *
-from trajectory_msgs.msg import *
+from cob_srvs.srv import *
 
 
 rospy.init_node('dual_arm_script')
 rospy.sleep(1.0)
 
-cob_lbr_client = actionlib.SimpleActionClient('/lbr_controller/joint_trajectory_action', JointTrajectoryAction)
-lwr_client = actionlib.SimpleActionClient('/lwr/lbr_controller/joint_trajectory_action', JointTrajectoryAction)
+cob_lbr_client = actionlib.SimpleActionClient('/lbr_controller/joint_trajectory_action', FollowJointTrajectoryAction)
+lwr_client = actionlib.SimpleActionClient('/lwr/lbr_controller/joint_trajectory_action', FollowJointTrajectoryAction)
 
-cob_sdh_client = actionlib.SimpleActionClient('/sdh_controller/joint_trajectory_action', JointTrajectoryAction)
-lwr_sdh_client = actionlib.SimpleActionClient('/lwr/sdh_controller/joint_trajectory_action', JointTrajectoryAction)
+cob_sdh_client = actionlib.SimpleActionClient('/sdh_controller/joint_trajectory_action', FollowJointTrajectoryAction)
+lwr_sdh_client = actionlib.SimpleActionClient('/lwr/sdh_controller/joint_trajectory_action', FollowJointTrajectoryAction)
 
 rospy.sleep(2.0)
 
@@ -52,8 +52,8 @@ point.positions=[0.0,1.0472,0.0,0.0,1.0472,0.0,0.0,1.0472]
 point.time_from_start=rospy.Duration(2)
 cylClose.points.append(point)
 
-goal = JointTrajectoryGoal()
-sdhgoal = JointTrajectoryGoal()
+goal = FollowJointTrajectoryGoal()
+sdhgoal = FollowJointTrajectoryGoal()
 
 while not rospy.is_shutdown():
     goal.trajectory = home

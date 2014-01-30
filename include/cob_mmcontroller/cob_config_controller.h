@@ -6,7 +6,6 @@
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <cob_srvs/Trigger.h>
 #include <brics_actuator/JointVelocities.h>
 
