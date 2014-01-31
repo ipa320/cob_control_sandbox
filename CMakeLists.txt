@@ -5,9 +5,8 @@ project(cob_articulation_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser kdl_conversions orocos_kdl tf tf_conversions eigen_conversions
+   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser kdl_conversions tf tf_conversions eigen_conversions
 )
-
 
 ## Note: The files of this package have been moved from cob_mmcontroller
 ## ToDo:
@@ -17,13 +16,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 
-
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 add_definitions(${EIGEN_DEFINITIONS})
 
+find_package(orocos_kdl REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -106,7 +105,7 @@ add_definitions(${EIGEN_DEFINITIONS})
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
 catkin_package(
-    DEPENDS rospy roscpp std_msgs geometry_msgs nav_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions
+    DEPENDS rospy roscpp std_msgs geometry_msgs nav_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions orocos_kdl
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO
     LIBRARIES # TODO
@@ -119,9 +118,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS})
 
 ## Declare a cpp library
 # add_library(cob_articulation_controller
@@ -136,11 +133,11 @@ include_directories(
 
 add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
 add_dependencies(cob_cartesian_trajectories ${PROJECT_NAME}_gencpp)
-target_link_libraries(cob_cartesian_trajectories ${catkin_LIBRARIES})
+target_link_libraries(cob_cartesian_trajectories ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
 add_dependencies(cob_cartesian_trajectories_PID ${PROJECT_NAME}_gencpp)
-target_link_libraries(cob_cartesian_trajectories_PID ${catkin_LIBRARIES})
+target_link_libraries(cob_cartesian_trajectories_PID ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 
 ## Add cmake target dependencies of the executable/library
