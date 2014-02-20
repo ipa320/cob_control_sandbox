@@ -60,13 +60,13 @@ private:
 	ros::ServiceServer serv_stop;
 	
 	ros::Subscriber js_sub;
+	ros::Subscriber pose_sub;
 	
 	ros::Publisher torso_cmd_vel_pub;
-	//ros::Publisher torso_lower_pub;
-	//ros::Publisher torso_pan_pub;
-	//ros::Publisher torso_upper_pub;
+	ros::Publisher lookat_cmd_vel_pub;
 	
-	actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *torso_ac; 
+	actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *torso_ac;
+	actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *lookat_ac; 
 	
 	bool b_initial_focus;
 	bool b_servoing;
@@ -89,9 +89,15 @@ private:
 	std::vector<float> torso_limits_min_;
 	std::vector<float> torso_limits_max_;
 	
+	std::vector<std::string> lookat_joints_;
+	
 	//helper functions
-	bool parseArmJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, KDL::JntArray& q, KDL::JntArray& q_dot);
-	bool parseLookatJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, KDL::JntArray& q, KDL::JntArray& q_dot);
+	bool parseJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities);
+	
+	KDL::JntArray last_q_arm_;
+	KDL::JntArray last_q_dot_arm_;
+	KDL::JntArray last_q_lookat_;
+	KDL::JntArray last_q_dot_lookat_;
 	
 	
 public:
@@ -105,8 +111,9 @@ public:
 	bool start_cb(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	bool stop_cb(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	
-	bool initial_focus();
+	bool initial_focus(std::string goal_focus_frame);
 	void jointstate_cb(const sensor_msgs::JointState::ConstPtr& msg);
+	//void lookat_pose_cb(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
 };
 #endif

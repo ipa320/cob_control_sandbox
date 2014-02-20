@@ -36,7 +36,7 @@
 void CobVisualServoingVel::initialize()
 {
 	KDL::Tree my_tree;
-
+	
 	std::string robot_desc_string;
 	nh_.param("/robot_description", robot_desc_string, std::string());
 	if (!kdl_parser::treeFromString(robot_desc_string, my_tree)){
@@ -51,6 +51,12 @@ void CobVisualServoingVel::initialize()
 		return;
 	}
 	
+	last_q_arm_ = KDL::JntArray(chain_arm_.getNrOfJoints());
+	last_q_dot_arm_ = KDL::JntArray(chain_arm_.getNrOfJoints());
+	last_q_lookat_ = KDL::JntArray(chain_lookat_.getNrOfJoints());
+	last_q_dot_lookat_ = KDL::JntArray(chain_lookat_.getNrOfJoints());
+	
+	
 	//hardcoded for now
 	torso_joints_.push_back("torso_lower_neck_tilt_joint");
 	torso_joints_.push_back("torso_pan_joint");
@@ -64,11 +70,19 @@ void CobVisualServoingVel::initialize()
 	torso_limits_max_.push_back(0.12);
 	torso_limits_max_.push_back(0.37);
 	
+	lookat_joints_.push_back("lookat_lin_joint");
+	lookat_joints_.push_back("lookat_x_joint");
+	lookat_joints_.push_back("lookat_y_joint");
+	lookat_joints_.push_back("lookat_z_joint");
+	
 	torso_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, "/torso_controller/follow_joint_trajectory",  true);
 	ROS_INFO("Wait for ActionServer...");
 	torso_ac->waitForServer(ros::Duration(10.0));
+	lookat_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, "/lookat_controller/follow_joint_trajectory",  true);
+	ROS_INFO("Wait for ActionServer...");
+	lookat_ac->waitForServer(ros::Duration(10.0));
 	
-	//Initializing configuration control solver
+	///Initializing configuration control solver
 	p_fksolver_pos_arm_ = new KDL::ChainFkSolverPos_recursive(chain_arm_);
 	p_fksolver_vel_arm_ = new KDL::ChainFkSolverVel_recursive(chain_arm_);
 	p_iksolver_vel_arm_ = new KDL::ChainIkSolverVel_pinv(chain_arm_, 0.001, 5);
@@ -90,11 +104,10 @@ void CobVisualServoingVel::initialize()
 	serv_stop = nh_.advertiseService("/visual_servoing/stop", &CobVisualServoingVel::stop_cb, this);
 	
 	js_sub = nh_.subscribe("/joint_states", 1, &CobVisualServoingVel::jointstate_cb, this);
+	//pose_sub = nh_.subscribe("/lookat_pose", 1, &CobVisualServoingVel::lookat_pose_cb, this);
 	
 	torso_cmd_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("/torso_controller/command_vel", 10);
-	//torso_lower_pub = nh_.advertise<std_msgs::Float64>("/torso_lower_neck_tilt_velocity_controller/command", 10);
-	//torso_pan_pub = nh_.advertise<std_msgs::Float64>("/torso_pan_velocity_controller/command", 10);
-	//torso_upper_pub = nh_.advertise<std_msgs::Float64>("/torso_upper_neck_tilt_velocity_controller/command", 10);
+	lookat_cmd_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("/lookat_controller/command_vel", 10);
 	
 	b_initial_focus = false;
 	b_servoing = false;
@@ -118,10 +131,11 @@ bool CobVisualServoingVel::start_cb(cob_srvs::Trigger::Request& request, cob_srv
 	{
 		ROS_INFO("Received request...");
 		
-		///Move Lookat so that lookat_focus_frame is equal to arm_7_link (i.e. same Pose)
+		///Move Lookat so that lookat_focus_frame is equal to goal_focus_frame (i.e. same Pose)
+		std::string goal_focus_frame = "/arm_7_link";
 		while(!b_initial_focus)
 		{
-			bool success = initial_focus();
+			bool success = initial_focus(goal_focus_frame);
 			if(success)
 			{
 				ROS_INFO("Start servoing...");
@@ -156,7 +170,7 @@ bool CobVisualServoingVel::stop_cb(cob_srvs::Trigger::Request& request, cob_srvs
 }
 
 
-bool CobVisualServoingVel::initial_focus()
+bool CobVisualServoingVel::initial_focus(std::string goal_focus_frame)
 {
 	ROS_INFO("Trying to initially focus goal!");
 	b_initial_focus = false;
@@ -166,7 +180,7 @@ bool CobVisualServoingVel::initial_focus()
 	geometry_msgs::TransformStamped transform_msg;
 	geometry_msgs::Pose pose_msg;
 	try{
-		m_tf_listener.lookupTransform("/base_link", "/arm_7_link", ros::Time(0), transform_tf);
+		m_tf_listener.lookupTransform("/base_link", goal_focus_frame, ros::Time(0), transform_tf);
 		transformStampedTFToMsg(transform_tf, transform_msg);
 		ROS_INFO_STREAM("Current Position of Goal:\n" << transform_msg);
 		pose_msg.position.x = transform_msg.transform.translation.x;
@@ -183,11 +197,11 @@ bool CobVisualServoingVel::initial_focus()
 	
 	///calculate IK for lookat chain (pos)
 	KDL::JntArray q_init_lookat(chain_lookat_.getNrOfJoints());
-	KDL::Frame frame_arm;
-	tf::poseMsgToKDL(pose_msg, frame_arm);
+	KDL::Frame frame_goal;
+	tf::poseMsgToKDL(pose_msg, frame_goal);
 	KDL::JntArray q_ik_lookat(chain_lookat_.getNrOfJoints());
 	
-	int ret_ik = p_iksolver_pos_lookat_->CartToJnt(q_init_lookat, frame_arm, q_ik_lookat);
+	int ret_ik = p_iksolver_pos_lookat_->CartToJnt(q_init_lookat, frame_goal, q_ik_lookat);
 	
 	if(ret_ik < 0)
 	{
@@ -207,38 +221,57 @@ bool CobVisualServoingVel::initial_focus()
 	torso_goal.trajectory.header.frame_id  =  "base_link";
 	torso_goal.trajectory.joint_names = torso_joints_;
 	trajectory_msgs::JointTrajectoryPoint  torso_point;
-	for(unsigned int i=0; i<chain_lookat_.getNrOfJoints(); i++)
+	for(unsigned int i=0; i<torso_joints_.size(); i++)
 	{
 		torso_point.positions.push_back(q_ik_lookat(i));
 	}
 	torso_point.time_from_start  = ros::Duration(2.0);
 	torso_goal.trajectory.points.push_back(torso_point);
+	
+	///move lookat (follow_joint_trajectory)
+	control_msgs::FollowJointTrajectoryGoal  lookat_goal;
+	lookat_goal.trajectory.header.stamp  =  ros::Time::now();
+	lookat_goal.trajectory.header.frame_id  =  "base_link";
+	lookat_goal.trajectory.joint_names = lookat_joints_;
+	trajectory_msgs::JointTrajectoryPoint  lookat_point;
+	for(unsigned int i=0; i<lookat_joints_.size(); i++)
+	{
+		lookat_point.positions.push_back(q_ik_lookat(i+torso_joints_.size()));
+	}
+	lookat_point.time_from_start  = ros::Duration(2.0);
+	lookat_goal.trajectory.points.push_back(lookat_point);
 
 	torso_ac->sendGoal(torso_goal);
+	lookat_ac->sendGoal(lookat_goal);
 	
-	bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(5.0));
+	//bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(5.0));
+	bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(5.0)) && lookat_ac->waitForResult(ros::Duration(5.0));
 	
 	if(finished_before_timeout)
 	{
-		actionlib::SimpleClientGoalState state = torso_ac->getState();
-		ROS_INFO("Action finished: %s",state.toString().c_str());
+		actionlib::SimpleClientGoalState torso_state = torso_ac->getState();
+		ROS_INFO("Torso Action finished: %s",torso_state.toString().c_str());
 		
-		if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
+		actionlib::SimpleClientGoalState lookat_state = lookat_ac->getState();
+		ROS_INFO("Lookat Action finished: %s",lookat_state.toString().c_str());
+		
+		//if(torso_state == actionlib::SimpleClientGoalState::SUCCEEDED)
+		if(torso_state == actionlib::SimpleClientGoalState::SUCCEEDED && lookat_state == actionlib::SimpleClientGoalState::SUCCEEDED)
 		{
-			ROS_INFO("Successfully moved torso!");
+			ROS_INFO("Successfully moved!");
 			b_initial_focus = true;
 			return true;
 		}
 		else
 		{
-			ROS_ERROR("Something went wrong while moving torso!");
+			ROS_ERROR("Something went wrong while moving!");
 			b_initial_focus = false;
 			return false;
 		}
 	}
 	else
 	{
-		ROS_ERROR("Something went wrong while moving torso!");
+		ROS_ERROR("Not finished before timeout!");
 		b_initial_focus = false;
 		return false;
 	}
@@ -253,34 +286,36 @@ void CobVisualServoingVel::jointstate_cb(const sensor_msgs::JointState::ConstPtr
 	{
 		KDL::JntArray q_arm(chain_arm_.getNrOfJoints());
 		KDL::JntArray q_dot_arm(chain_arm_.getNrOfJoints());
+		KDL::JntArray q_lookat(chain_lookat_.getNrOfJoints());
+		KDL::JntArray q_dot_lookat(chain_lookat_.getNrOfJoints());
 		
-		bool success = parseArmJointStates(msg->name, msg->position, msg->velocity, q_arm, q_dot_arm);
+		bool success = parseJointStates(msg->name, msg->position, msg->velocity);
+		
+		q_arm = last_q_arm_;
+		q_dot_arm = last_q_dot_arm_;
+		q_lookat = last_q_lookat_;
+		q_dot_lookat = last_q_dot_lookat_;
+		
 		
 		if(success)
 		{
 			if(throttle_==10)
 			{
-				///Test and Debug output
-				KDL::Frame frame_arm;
-				int test_fk_arm = p_fksolver_pos_arm_->JntToCart(q_arm, frame_arm);
-				geometry_msgs::Pose pose_arm;
-				tf::poseKDLToMsg(frame_arm, pose_arm);
-				ROS_INFO_STREAM("Current arm_config: "<<q_arm(0)<<", "<<q_arm(1)<<", "<<q_arm(2)<<", "<<q_arm(3)<<", "<<q_arm(4)<<", "<<q_arm(5)<<", "<<q_arm(6));
-				ROS_INFO_STREAM("Current arm_pose:\n" << pose_arm);
+				/////Test and Debug output
+				//KDL::Frame frame_arm;
+				//int test_fk_arm = p_fksolver_pos_arm_->JntToCart(q_arm, frame_arm);
+				//geometry_msgs::Pose pose_arm;
+				//tf::poseKDLToMsg(frame_arm, pose_arm);
+				//ROS_INFO_STREAM("Current arm_config: "<<q_arm(0)<<", "<<q_arm(1)<<", "<<q_arm(2)<<", "<<q_arm(3)<<", "<<q_arm(4)<<", "<<q_arm(5)<<", "<<q_arm(6));
+				//ROS_INFO_STREAM("Current arm_pose:\n" << pose_arm);
 				
 				
-				KDL::JntArray q_lookat(chain_lookat_.getNrOfJoints());
-				KDL::JntArray q_dot_lookat(chain_lookat_.getNrOfJoints());
-				bool test_success = parseLookatJointStates(msg->name, msg->position, msg->velocity, q_lookat, q_dot_lookat);
-				
-				KDL::Frame frame_lookat;
-				int test_fk_lookat = p_fksolver_pos_lookat_->JntToCart(q_lookat, frame_lookat);
-				geometry_msgs::Pose pose_lookat;
-				tf::poseKDLToMsg(frame_lookat, pose_lookat);
-				ROS_INFO_STREAM("Current lookat_config: "<<q_lookat(0)<<", "<<q_lookat(1)<<", "<<q_lookat(2)<<", "<<q_lookat(3)<<", "<<q_lookat(4)<<", "<<q_lookat(5)<<", "<<q_lookat(6));
-				ROS_INFO_STREAM("Current lookat_pose:\n" << pose_lookat);
-				
-				
+				//KDL::Frame frame_lookat;
+				//int test_fk_lookat = p_fksolver_pos_lookat_->JntToCart(q_lookat, frame_lookat);
+				//geometry_msgs::Pose pose_lookat;
+				//tf::poseKDLToMsg(frame_lookat, pose_lookat);
+				//ROS_INFO_STREAM("Current lookat_config: "<<q_lookat(0)<<", "<<q_lookat(1)<<", "<<q_lookat(2)<<", "<<q_lookat(3)<<", "<<q_lookat(4)<<", "<<q_lookat(5)<<", "<<q_lookat(6));
+				//ROS_INFO_STREAM("Current lookat_pose:\n" << pose_lookat);
 				
 				
 				/***
@@ -293,40 +328,52 @@ void CobVisualServoingVel::jointstate_cb(const sensor_msgs::JointState::ConstPtr
 				
 				
 				///Actual Work starts here
-				
 				KDL::FrameVel frame_vel_arm;
 				KDL::JntArrayVel vel_arm_in(q_arm, q_dot_arm);
 				int ret_fk = p_fksolver_vel_arm_->JntToCart(vel_arm_in, frame_vel_arm);
 				
 				KDL::JntArray q_init_lookat(chain_lookat_.getNrOfJoints());
 				KDL::Twist twist_arm = frame_vel_arm.GetTwist();
+				//KDL::Twist twist_arm = KDL::Twist::Zero();
+				//twist_arm.vel.x(0.20);
 				KDL::JntArray q_dot_ik_lookat(chain_lookat_.getNrOfJoints());
+				
+				ROS_INFO("Twist_Arm Vel (%f, %f, %f)", twist_arm.vel.x(), twist_arm.vel.y(), twist_arm.vel.z());
+				ROS_INFO("Twist_Arm Rot (%f, %f, %f)", twist_arm.rot.x(), twist_arm.rot.y(), twist_arm.rot.z());
 				
 				int ret_ik = p_iksolver_vel_lookat_->CartToJnt(q_init_lookat, twist_arm, q_dot_ik_lookat);
 				
-				ROS_INFO_STREAM("Goal torso_velocities: "<<q_dot_ik_lookat(0)<<", "<<q_dot_ik_lookat(1)<<", "<<q_dot_ik_lookat(2));
-				
-				
-				brics_actuator::JointVelocities msg;
-				msg.velocities.resize(torso_joints_.size());
-				for(int i=0; i<torso_joints_.size(); i++)
+				if(ret_ik < 0)
 				{
-					msg.velocities[i].joint_uri = torso_joints_[i].c_str();
-					msg.velocities[i].unit = "rad";
-					msg.velocities[i].value = q_dot_ik_lookat(i);
+					ROS_ERROR("No Vel-IK found!");
 				}
-				torso_cmd_vel_pub.publish(msg);
-				
-				//std_msgs::Float64 msg_lower;
-				//std_msgs::Float64 msg_pan;
-				//std_msgs::Float64 msg_upper;
-				//msg_lower.data = q_dot_ik_lookat(0);
-				//msg_pan.data = q_dot_ik_lookat(1);
-				//msg_upper.data = q_dot_ik_lookat(2);
-				
-				//torso_lower_pub.publish(msg_lower);
-				//torso_pan_pub.publish(msg_pan);
-				//torso_upper_pub.publish(msg_upper);
+				else
+				{
+					ROS_INFO_STREAM("Goal torso_velocities: "<<q_dot_ik_lookat(0)<<", "<<q_dot_ik_lookat(1)<<", "<<q_dot_ik_lookat(2));
+					
+					
+					brics_actuator::JointVelocities torso_msg;
+					torso_msg.velocities.resize(torso_joints_.size());
+					for(int i=0; i<torso_joints_.size(); i++)
+					{
+						torso_msg.velocities[i].joint_uri = torso_joints_[i].c_str();
+						torso_msg.velocities[i].unit = "rad";
+						torso_msg.velocities[i].value = q_dot_ik_lookat(i);
+					}
+					
+					brics_actuator::JointVelocities lookat_msg;
+					lookat_msg.velocities.resize(lookat_joints_.size());
+					for(int i=0; i<lookat_joints_.size(); i++)
+					{
+						lookat_msg.velocities[i].joint_uri = lookat_joints_[i].c_str();
+						lookat_msg.velocities[i].unit = "rad";
+						lookat_msg.velocities[i].value = q_dot_ik_lookat(i+torso_joints_.size());
+					}
+					
+					torso_cmd_vel_pub.publish(torso_msg);
+					lookat_cmd_vel_pub.publish(lookat_msg);
+					
+				}
 				
 				throttle_ = 0;
 			}
@@ -343,12 +390,17 @@ void CobVisualServoingVel::jointstate_cb(const sensor_msgs::JointState::ConstPtr
  * Helper Functions 
  * ~~~~~~~~~~~~~~~~*/
 
-bool CobVisualServoingVel::parseArmJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, KDL::JntArray& q, KDL::JntArray& q_dot)
+bool CobVisualServoingVel::parseJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities)
 {
-	KDL::JntArray q_temp(7);
-	KDL::JntArray q_dot_temp(7);
-	int count = 0;
-	bool parsed = false;
+	KDL::JntArray q_arm_temp(7);
+	KDL::JntArray q_dot_arm_temp(7);
+	int count_arm = 0;
+	KDL::JntArray q_torso_temp(3);
+	KDL::JntArray q_dot_torso_temp(3);
+	int count_torso = 0;
+	KDL::JntArray q_lookat_temp(4);
+	KDL::JntArray q_dot_lookat_temp(4);
+	int count_lookat = 0;
 	
 	ROS_DEBUG("New JointState");
 	
@@ -357,66 +409,53 @@ bool CobVisualServoingVel::parseArmJointStates(std::vector<std::string> names, s
 		if(strncmp(names[i].c_str(), "arm_", 4) == 0)
 		{
 			ROS_DEBUG("%d: %s", i, names[i].c_str());
-			q_temp(count) = positions[i];
-			q_dot_temp(count) = velocities[i];
-			count++;
+			q_arm_temp(count_arm) = positions[i];
+			q_dot_arm_temp(count_arm) = velocities[i];
+			count_arm++;
 		}
-	}
-	
-	if(count == 7)
-		parsed = true;
-	
-	ROS_DEBUG("Done Parsing");
-	
-	q = q_temp;
-	q_dot = q_dot_temp;
-	return parsed;
-}
-
-
-bool CobVisualServoingVel::parseLookatJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, KDL::JntArray& q, KDL::JntArray& q_dot)
-{
-	KDL::JntArray q_temp(7);
-	KDL::JntArray q_dot_temp(7);
-	int count = 0;
-	bool parsed = false;
-	
-	ROS_DEBUG("New JointState");
-	
-	for(unsigned int i = 0; i < names.size(); i++)
-	{
 		if(strncmp(names[i].c_str(), "torso_", 6) == 0)
 		{
 			ROS_DEBUG("%d: %s", i, names[i].c_str());
-			q_temp(count) = positions[i];
-			q_dot_temp(count) = velocities[i];
-			count++;
+			q_torso_temp(count_torso) = positions[i];
+			q_dot_torso_temp(count_torso) = velocities[i];
+			count_torso++;
+		}
+		if(strncmp(names[i].c_str(), "lookat_", 7) == 0)
+		{
+			ROS_DEBUG("%d: %s", i, names[i].c_str());
+			q_lookat_temp(count_lookat) = positions[i];
+			q_dot_lookat_temp(count_lookat) = velocities[i];
+			count_lookat++;
 		}
 	}
 	
-	if(count == 3)
+	if(count_arm == 7)
 	{
-		q_temp(3) = 1.0;		//lookat_link_joint
-		q_temp(4) = 0.0;		//lookat_x_joint
-		q_temp(5) = 0.0;		//lookat_y_joint
-		q_temp(6) = 0.0;		//lookat_z_joint
-		
-		q_dot_temp(3) = 0.0;		//lookat_link_joint
-		q_dot_temp(4) = 0.0;		//lookat_x_joint
-		q_dot_temp(5) = 0.0;		//lookat_y_joint
-		q_dot_temp(6) = 0.0;		//lookat_z_joint
-		
-		parsed = true;
+		ROS_DEBUG("Done Parsing");
+		last_q_arm_ = q_arm_temp;
+		last_q_dot_arm_ = q_dot_arm_temp;
+	}
+	if(count_torso == 3)
+	{
+		ROS_DEBUG("Done Parsing");
+		for(unsigned int i=0; i<q_torso_temp.rows(); i++)
+		{
+			last_q_lookat_(i) = q_torso_temp(i);
+			last_q_dot_lookat_(i) = q_dot_torso_temp(i);
+		}
+	}
+	if(count_lookat == 4)
+	{
+		ROS_DEBUG("Done Parsing");
+		for(unsigned int i=0; i<q_lookat_temp.rows(); i++)
+		{
+			last_q_lookat_(i+q_torso_temp.rows()) = q_lookat_temp(i);
+			last_q_dot_lookat_(i+q_torso_temp.rows()) = q_dot_lookat_temp(i);
+		}
 	}
 	
-	ROS_DEBUG("Done Parsing");
-	
-	q = q_temp;
-	q_dot = q_dot_temp;
-	return parsed;
+	return true;
 }
-
-
 
 
 
