@@ -341,7 +341,7 @@ void CobVisualServoingVel::jointstate_cb(const sensor_msgs::JointState::ConstPtr
 				ROS_INFO("Twist_Arm Vel (%f, %f, %f)", twist_arm.vel.x(), twist_arm.vel.y(), twist_arm.vel.z());
 				ROS_INFO("Twist_Arm Rot (%f, %f, %f)", twist_arm.rot.x(), twist_arm.rot.y(), twist_arm.rot.z());
 				
-				int ret_ik = p_iksolver_vel_lookat_->CartToJnt(q_init_lookat, twist_arm, q_dot_ik_lookat);
+				int ret_ik = p_iksolver_vel_lookat_->CartToJnt(last_q_lookat_, twist_arm, q_dot_ik_lookat);
 				
 				if(ret_ik < 0)
 				{
