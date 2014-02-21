@@ -35,8 +35,8 @@
 
 void CobVisualServoingVel::initialize()
 {
+	///parse robot_description and generate KDL chains
 	KDL::Tree my_tree;
-	
 	std::string robot_desc_string;
 	nh_.param("/robot_description", robot_desc_string, std::string());
 	if (!kdl_parser::treeFromString(robot_desc_string, my_tree)){
@@ -51,38 +51,33 @@ void CobVisualServoingVel::initialize()
 		return;
 	}
 	
-	last_q_arm_ = KDL::JntArray(chain_arm_.getNrOfJoints());
-	last_q_dot_arm_ = KDL::JntArray(chain_arm_.getNrOfJoints());
-	last_q_lookat_ = KDL::JntArray(chain_lookat_.getNrOfJoints());
-	last_q_dot_lookat_ = KDL::JntArray(chain_lookat_.getNrOfJoints());
-	
-	
-	//hardcoded for now
+	///get some more parameter
+	//hardcoded for now -- get this from URDF later
 	torso_joints_.push_back("torso_lower_neck_tilt_joint");
 	torso_joints_.push_back("torso_pan_joint");
 	torso_joints_.push_back("torso_upper_neck_tilt_joint");
-	
-	torso_limits_min_.push_back(-0.25);
-	torso_limits_min_.push_back(-0.12);
-	torso_limits_min_.push_back(-0.37);
-	
-	torso_limits_max_.push_back(0.21);
-	torso_limits_max_.push_back(0.12);
-	torso_limits_max_.push_back(0.37);
-	
+		
 	lookat_joints_.push_back("lookat_lin_joint");
 	lookat_joints_.push_back("lookat_x_joint");
 	lookat_joints_.push_back("lookat_y_joint");
 	lookat_joints_.push_back("lookat_z_joint");
 	
-	torso_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, "/torso_controller/follow_joint_trajectory",  true);
-	ROS_INFO("Wait for ActionServer...");
-	torso_ac->waitForServer(ros::Duration(10.0));
-	lookat_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, "/lookat_controller/follow_joint_trajectory",  true);
-	ROS_INFO("Wait for ActionServer...");
-	lookat_ac->waitForServer(ros::Duration(10.0));
+	torso_limits_min_.push_back(-0.25);
+	torso_limits_min_.push_back(-0.12);
+	torso_limits_min_.push_back(-0.37);
+	torso_limits_max_.push_back(0.21);
+	torso_limits_max_.push_back(0.12);
+	torso_limits_max_.push_back(0.37);
 	
-	///Initializing configuration control solver
+	KDL::JntArray torso_min(torso_limits_min_.size());
+	KDL::JntArray torso_max(torso_limits_max_.size());
+	for(unsigned int i=0; i<torso_limits_min_.size(); i++)
+	{
+		torso_min(i)=torso_limits_min_[i];
+		torso_max(i)=torso_limits_max_[i];
+	}
+	
+	///initialize configuration control solver
 	p_fksolver_pos_arm_ = new KDL::ChainFkSolverPos_recursive(chain_arm_);
 	p_fksolver_vel_arm_ = new KDL::ChainFkSolverVel_recursive(chain_arm_);
 	p_iksolver_vel_arm_ = new KDL::ChainIkSolverVel_pinv(chain_arm_, 0.001, 5);
@@ -91,14 +86,16 @@ void CobVisualServoingVel::initialize()
 	p_fksolver_vel_lookat_ = new KDL::ChainFkSolverVel_recursive(chain_lookat_);
 	p_iksolver_vel_lookat_ = new KDL::ChainIkSolverVel_pinv(chain_lookat_, 0.001, 5);
 	//p_iksolver_pos_lookat_ = new KDL::ChainIkSolverPos_NR(chain_lookat_, *p_fksolver_pos_lookat_, *p_iksolver_vel_lookat_, 5, 0.001);
-	KDL::JntArray torso_min(torso_limits_min_.size());
-	KDL::JntArray torso_max(torso_limits_max_.size());
-	for(unsigned int i=0; i<torso_limits_min_.size(); i++)
-	{
-		torso_min(i)=torso_limits_min_[i];
-		torso_max(i)=torso_limits_max_[i];
-	}
 	p_iksolver_pos_lookat_ = new KDL::ChainIkSolverPos_NR_JL(chain_lookat_, torso_min, torso_max, *p_fksolver_pos_lookat_, *p_iksolver_vel_lookat_, 50, 0.001);
+	
+	
+	///initialize ROS interfaces (ActionServer, Subscriber/Publisher, Services)
+	torso_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, "/torso_controller/follow_joint_trajectory",  true);
+	ROS_INFO("Wait for ActionServer...");
+	torso_ac->waitForServer(ros::Duration(10.0));
+	lookat_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, "/lookat_controller/follow_joint_trajectory",  true);
+	ROS_INFO("Wait for ActionServer...");
+	lookat_ac->waitForServer(ros::Duration(10.0));
 	
 	serv_start = nh_.advertiseService("/visual_servoing/start", &CobVisualServoingVel::start_cb, this);
 	serv_stop = nh_.advertiseService("/visual_servoing/stop", &CobVisualServoingVel::stop_cb, this);
@@ -108,6 +105,13 @@ void CobVisualServoingVel::initialize()
 	
 	torso_cmd_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("/torso_controller/command_vel", 10);
 	lookat_cmd_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("/lookat_controller/command_vel", 10);
+	
+	
+	///initialize variables and current joint values and velocities
+	last_q_arm_ = KDL::JntArray(chain_arm_.getNrOfJoints());
+	last_q_dot_arm_ = KDL::JntArray(chain_arm_.getNrOfJoints());
+	last_q_lookat_ = KDL::JntArray(chain_lookat_.getNrOfJoints());
+	last_q_dot_lookat_ = KDL::JntArray(chain_lookat_.getNrOfJoints());
 	
 	b_initial_focus = false;
 	b_servoing = false;
