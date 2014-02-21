@@ -78,6 +78,7 @@ private:
 	std::vector<std::string> lookat_joints_;
 	KDL::JntArray lookat_min_;
 	KDL::JntArray lookat_max_;
+	KDL::JntArray lookat_vel_max_;
 	
 	ros::Time m_last_time_pub;
 	KDL::JntArray m_last_q_lookat;
@@ -87,6 +88,14 @@ private:
 	bool b_initial_focus;
 	bool b_servoing;
 	double update_frequency;
+	
+	
+	
+	bool update_goal(KDL::JntArray& q_lookat_goal);
+	bool update_commands(KDL::JntArray& q_lookat_goal);
+	void send_commands(KDL::JntArray goal_velocities);
+	bool initial_focus();
+	void stop();
 	
 	
 public:
@@ -100,10 +109,6 @@ public:
 	
 	bool start_cb(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	bool stop_cb(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
-	
-	bool update_goal(KDL::JntArray& q_lookat_goal);
-	bool update_commands(KDL::JntArray& q_lookat_goal);
-	bool initial_focus();
 };
 #endif
 

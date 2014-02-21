@@ -63,15 +63,20 @@ void CobVisualServoingVel::initialize()
 	
 	std::vector<double> torso_limits_min;
 	std::vector<double> torso_limits_max;
+	std::vector<double> torso_vel_max;
 	torso_limits_min.push_back(-0.25);
 	torso_limits_min.push_back(-0.12);
 	torso_limits_min.push_back(-0.37);
 	torso_limits_max.push_back(0.21);
 	torso_limits_max.push_back(0.12);
 	torso_limits_max.push_back(0.37);
+	torso_vel_max.push_back(0.5);
+	torso_vel_max.push_back(0.5);
+	torso_vel_max.push_back(0.5);
 	
 	std::vector<double> lookat_limits_min;
 	std::vector<double> lookat_limits_max;
+	std::vector<double> lookat_vel_max;
 	lookat_limits_min.push_back(-5.0);
 	lookat_limits_min.push_back(-3.1415);
 	lookat_limits_min.push_back(-3.1415);
@@ -80,18 +85,25 @@ void CobVisualServoingVel::initialize()
 	lookat_limits_max.push_back(3.1415);
 	lookat_limits_max.push_back(3.1415);
 	lookat_limits_max.push_back(3.1415);
+	lookat_vel_max.push_back(1.0);
+	lookat_vel_max.push_back(1.0);
+	lookat_vel_max.push_back(1.0);
+	lookat_vel_max.push_back(1.0);
 	
 	lookat_min_.resize(chain_lookat_.getNrOfJoints());
 	lookat_max_.resize(chain_lookat_.getNrOfJoints());
+	lookat_vel_max_.resize(chain_lookat_.getNrOfJoints());
 	for(unsigned int i=0; i<torso_limits_min.size(); i++)
 	{
 		lookat_min_(i)=torso_limits_min[i];
 		lookat_max_(i)=torso_limits_max[i];
+		lookat_vel_max_(i)=torso_vel_max[i];
 	}
 	for(unsigned int i=0; i<lookat_limits_min.size(); i++)
 	{
 		lookat_min_(i+torso_limits_min.size())=lookat_limits_min[i];
-		lookat_max_(i+torso_limits_min.size())=lookat_limits_max[i];
+		lookat_max_(i+torso_limits_max.size())=lookat_limits_max[i];
+		lookat_vel_max_(i+torso_vel_max.size())=lookat_vel_max[i];
 	}
 	
 	///initialize configuration control solver
@@ -113,7 +125,7 @@ void CobVisualServoingVel::initialize()
 	serv_start = nh_.advertiseService("/visual_servoing/start", &CobVisualServoingVel::start_cb, this);
 	serv_stop = nh_.advertiseService("/visual_servoing/stop", &CobVisualServoingVel::stop_cb, this);
 	
-	js_sub = nh_.subscribe("/joint_states", 1, &CobVisualServoingVel::jointstate_cb, this);
+	js_sub = nh_.subscribe("/joint_states", 100, &CobVisualServoingVel::jointstate_cb, this);
 	
 	torso_cmd_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("/torso_controller/command_vel", 10);
 	lookat_cmd_vel_pub = nh_.advertise<brics_actuator::JointVelocities>("/lookat_controller/command_vel", 10);
@@ -147,13 +159,24 @@ void CobVisualServoingVel::run()
 			ROS_INFO("Update Loop");
 			KDL::JntArray q_lookat_goal;
 			success = update_goal(q_lookat_goal);
+			
 			if(success)
 			{
 				success = update_commands(q_lookat_goal);
+				
+				if(!success)
+				{
+					ROS_ERROR("Goal Values exceed limits! Aborting...!");
+					stop();
+					b_initial_focus = false;
+					b_servoing = false;
+				}
 			}
 			else
 			{
 				ROS_ERROR("Not able to follow goal anymore! Abort Servoing!");
+				stop();
+				b_initial_focus = false;
 				b_servoing = false;
 			}
 		}
@@ -190,6 +213,9 @@ bool CobVisualServoingVel::start_cb(cob_srvs::Trigger::Request& request, cob_srv
 			ros::spinOnce();
 		}
 		
+		//wait some time to give joint_states time to update
+		//ros::Duration(5.0).sleep();
+		ros::spinOnce();
 		b_servoing = true;
 	}
 	return true;
@@ -205,10 +231,19 @@ bool CobVisualServoingVel::stop_cb(cob_srvs::Trigger::Request& request, cob_srvs
 	else
 	{
 		ROS_INFO("Stopping servoing...");
+		stop();
 		b_initial_focus = false;
 		b_servoing = false;
 	}
 	return true;
+}
+
+void CobVisualServoingVel::stop()
+{
+	KDL::JntArray zero(chain_lookat_.getNrOfJoints());
+	KDL::SetToZero(zero);
+	
+	send_commands(zero);
 }
 
 
@@ -326,7 +361,7 @@ bool CobVisualServoingVel::update_goal(KDL::JntArray& q_lookat_goal)
 	}
 	else
 	{
-		ROS_DEBUG("Goal Config: (%f, %f, %f, %f, %f, %f, %f)", q_lookat_goal(0), q_lookat_goal(1), q_lookat_goal(2), q_lookat_goal(3), q_lookat_goal(4), q_lookat_goal(5), q_lookat_goal(6));
+		ROS_INFO("Goal Config: (%f, %f, %f, %f, %f, %f, %f)", q_lookat_goal(0), q_lookat_goal(1), q_lookat_goal(2), q_lookat_goal(3), q_lookat_goal(4), q_lookat_goal(5), q_lookat_goal(6));
 		return true;
 	}
 }
@@ -334,6 +369,16 @@ bool CobVisualServoingVel::update_goal(KDL::JntArray& q_lookat_goal)
 
 bool CobVisualServoingVel::update_commands(KDL::JntArray& q_lookat_goal)
 {
+	///safety check: joint limits:
+	for(unsigned int i=0; i<q_lookat_goal.rows(); i++)
+	{
+		if(q_lookat_goal(i) < lookat_min_(i) || q_lookat_goal(i) > lookat_max_(i))
+		{
+			ROS_ERROR("Goal value %d exceeds pos limits: %f", i, q_lookat_goal(i));
+			return false;
+		}
+	}
+	
 	///calculate goal velocities
 	double delta_t = ros::Time::now().toSec() - m_last_time_pub.toSec();
 	m_last_time_pub = ros::Time::now();  
@@ -350,27 +395,20 @@ bool CobVisualServoingVel::update_commands(KDL::JntArray& q_lookat_goal)
 	
 	ROS_INFO("Vel Command: (%f, %f, %f, %f, %f, %f, %f)", q_dot_lookat(0), q_dot_lookat(1), q_dot_lookat(2), q_dot_lookat(3), q_dot_lookat(4), q_dot_lookat(5), q_dot_lookat(6));
 	
-	///send velocities
-	brics_actuator::JointVelocities torso_msg;
-	torso_msg.velocities.resize(torso_joints_.size());
-	for(int i=0; i<torso_joints_.size(); i++)
+	
+	///safety check: velocity limits
+	for(unsigned int i=0; i<q_dot_lookat.rows(); i++)
 	{
-		torso_msg.velocities[i].joint_uri = torso_joints_[i].c_str();
-		torso_msg.velocities[i].unit = "rad";
-		torso_msg.velocities[i].value = q_dot_lookat(i);
+		if(std::fabs(q_dot_lookat(i)) > lookat_vel_max_(i))
+		{
+			ROS_ERROR("Goal value %d exceeds vel limits: %f", i, q_dot_lookat(i));
+			return false;
+		}
 	}
 	
-	brics_actuator::JointVelocities lookat_msg;
-	lookat_msg.velocities.resize(lookat_joints_.size());
-	for(int i=0; i<lookat_joints_.size(); i++)
-	{
-		lookat_msg.velocities[i].joint_uri = lookat_joints_[i].c_str();
-		lookat_msg.velocities[i].unit = "rad";
-		lookat_msg.velocities[i].value = q_dot_lookat(i+torso_joints_.size());
-	}
 	
-	torso_cmd_vel_pub.publish(torso_msg);
-	lookat_cmd_vel_pub.publish(lookat_msg);
+	///send commands
+	send_commands(q_dot_lookat);
 	
 	return true;
 }
@@ -381,7 +419,6 @@ bool CobVisualServoingVel::update_commands(KDL::JntArray& q_lookat_goal)
 /* ~~~~~~~~~~~~~~~~
  * Helper Functions 
  * ~~~~~~~~~~~~~~~~*/
-
 void CobVisualServoingVel::jointstate_cb(const sensor_msgs::JointState::ConstPtr& msg)
 {
 	KDL::JntArray q_torso_temp(3);
@@ -427,8 +464,39 @@ void CobVisualServoingVel::jointstate_cb(const sensor_msgs::JointState::ConstPtr
 			m_last_q_dot_lookat(i+q_torso_temp.rows()) = q_dot_lookat_temp(i);
 		}
 	}
+}
+
+
+
+void CobVisualServoingVel::send_commands(KDL::JntArray goal_velocities)
+{
+	if(goal_velocities.rows() != chain_lookat_.getNrOfJoints())
+	{
+		ROS_ERROR("DoF do not match! Not sending velocities!");
+		return;
+	}
 	
-	ROS_DEBUG("Current Config: (%f, %f, %f, %f, %f, %f, %f)", m_last_q_lookat(0), m_last_q_lookat(1), m_last_q_lookat(2), m_last_q_lookat(3), m_last_q_lookat(4), m_last_q_lookat(5), m_last_q_lookat(6));
+	///send velocities
+	brics_actuator::JointVelocities torso_msg;
+	torso_msg.velocities.resize(torso_joints_.size());
+	for(int i=0; i<torso_joints_.size(); i++)
+	{
+		torso_msg.velocities[i].joint_uri = torso_joints_[i].c_str();
+		torso_msg.velocities[i].unit = "rad";
+		torso_msg.velocities[i].value = goal_velocities(i);
+	}
+	
+	brics_actuator::JointVelocities lookat_msg;
+	lookat_msg.velocities.resize(lookat_joints_.size());
+	for(int i=0; i<lookat_joints_.size(); i++)
+	{
+		lookat_msg.velocities[i].joint_uri = lookat_joints_[i].c_str();
+		lookat_msg.velocities[i].unit = "rad";
+		lookat_msg.velocities[i].value = goal_velocities(i+torso_joints_.size());
+	}
+	
+	torso_cmd_vel_pub.publish(torso_msg);
+	lookat_cmd_vel_pub.publish(lookat_msg);
 }
 
 
