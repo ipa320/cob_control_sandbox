@@ -60,7 +60,6 @@ private:
 	ros::ServiceServer serv_stop;
 	
 	ros::Subscriber js_sub;
-	ros::Subscriber pose_sub;
 	
 	ros::Publisher torso_cmd_vel_pub;
 	ros::Publisher lookat_cmd_vel_pub;
@@ -68,17 +67,7 @@ private:
 	actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *torso_ac;
 	actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *lookat_ac; 
 	
-	bool b_initial_focus;
-	bool b_servoing;
-	unsigned int throttle_;
-	
-	KDL::Chain chain_arm_;
 	KDL::Chain chain_lookat_;
-	
-	KDL::ChainFkSolverPos_recursive* p_fksolver_pos_arm_;
-	KDL::ChainFkSolverVel_recursive* p_fksolver_vel_arm_;
-	KDL::ChainIkSolverPos_NR* p_iksolver_pos_arm_;
-	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_arm_;
 	KDL::ChainFkSolverPos_recursive* p_fksolver_pos_lookat_;
 	KDL::ChainFkSolverVel_recursive* p_fksolver_vel_lookat_;
 	//KDL::ChainIkSolverPos_NR* p_iksolver_pos_lookat_;
@@ -86,18 +75,18 @@ private:
 	KDL::ChainIkSolverVel_pinv* p_iksolver_vel_lookat_;
 	
 	std::vector<std::string> torso_joints_;		//later: use this for configuring visual servoing for 3DoF or 4DoF torso
-	std::vector<float> torso_limits_min_;
-	std::vector<float> torso_limits_max_;
-	
 	std::vector<std::string> lookat_joints_;
+	KDL::JntArray lookat_min_;
+	KDL::JntArray lookat_max_;
 	
-	//helper functions
-	bool parseJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities);
+	ros::Time m_last_time_pub;
+	KDL::JntArray m_last_q_lookat;
+	KDL::JntArray m_last_q_dot_lookat;
+	std::string m_goal_focus_frame;
 	
-	KDL::JntArray last_q_arm_;
-	KDL::JntArray last_q_dot_arm_;
-	KDL::JntArray last_q_lookat_;
-	KDL::JntArray last_q_dot_lookat_;
+	bool b_initial_focus;
+	bool b_servoing;
+	double update_frequency;
 	
 	
 public:
@@ -107,14 +96,14 @@ public:
 	void initialize();
 	void run();
 	
+	void jointstate_cb(const sensor_msgs::JointState::ConstPtr& msg);
 	
 	bool start_cb(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	bool stop_cb(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	
-	bool initial_focus(std::string goal_focus_frame);
-	void jointstate_cb(const sensor_msgs::JointState::ConstPtr& msg);
-	//void lookat_pose_cb(const geometry_msgs::PoseStamped::ConstPtr& msg);
-
+	bool update_goal(KDL::JntArray& q_lookat_goal);
+	bool update_commands(KDL::JntArray& q_lookat_goal);
+	bool initial_focus();
 };
 #endif
 
