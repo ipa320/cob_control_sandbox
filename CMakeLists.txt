@@ -91,6 +91,9 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 add_executable(cob_visual_servoing_server_vel ros/src/cob_visual_servoing_vel.cpp)
 target_link_libraries(cob_visual_servoing_server_vel ${catkin_LIBRARIES})
 
+add_executable(cob_follow_arm ros/src/cob_follow_arm.cpp)
+target_link_libraries(cob_follow_arm ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
