@@ -23,7 +23,6 @@
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>control_msgs</build_depend>
   <build_depend>kdl_parser</build_depend>
-  <build_depend>kdl_conversions</build_depend>
   <build_depend>orocos_kdl</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>tf_conversions</build_depend>
@@ -43,7 +42,6 @@
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>control_msgs</run_depend>
   <run_depend>kdl_parser</run_depend>
-  <run_depend>kdl_converisons</run_depend>
   <run_depend>orocos_kdl</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>tf_conversions</run_depend>
