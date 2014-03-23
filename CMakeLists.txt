@@ -5,7 +5,7 @@ project(cob_articulation_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser kdl_conversions tf tf_conversions eigen_conversions
+   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions eigen_conversions
 )
 
 ## Note: The files of this package have been moved from cob_mmcontroller
@@ -105,8 +105,8 @@ find_package(orocos_kdl REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
 catkin_package(
-    DEPENDS rospy roscpp std_msgs geometry_msgs nav_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions orocos_kdl
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS rospy roscpp message_runtime std_msgs geometry_msgs sensor_msgs visualization_msgs nav_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions 
+    DEPENDS # TODO
     INCLUDE_DIRS # TODO
     LIBRARIES # TODO
 ) 
@@ -132,11 +132,11 @@ include_directories(${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS})
 #add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
 
 add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
-add_dependencies(cob_cartesian_trajectories ${PROJECT_NAME}_gencpp)
+add_dependencies(cob_cartesian_trajectories ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(cob_cartesian_trajectories ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
-add_dependencies(cob_cartesian_trajectories_PID ${PROJECT_NAME}_gencpp)
+add_dependencies(cob_cartesian_trajectories_PID ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(cob_cartesian_trajectories_PID ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 
