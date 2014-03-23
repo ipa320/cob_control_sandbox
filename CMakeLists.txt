@@ -4,7 +4,7 @@ project(cob_visual_servoing)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED roscpp actionlib actionlib_msgs cob_srvs controller_manager_msgs sensor_msgs brics_actuator kdl_parser kdl_conversions orocos_kdl eigen_conversions tf tf_conversions )
+find_package(catkin REQUIRED COMPONENTS roscpp actionlib actionlib_msgs cob_srvs controller_manager_msgs sensor_msgs brics_actuator kdl_parser kdl_conversions eigen_conversions tf tf_conversions )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -12,6 +12,8 @@ find_package(catkin REQUIRED roscpp actionlib actionlib_msgs cob_srvs controller
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 add_definitions(${EIGEN_DEFINITIONS})
+
+find_package(orocos_kdl REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -53,7 +55,7 @@ add_definitions(${EIGEN_DEFINITIONS})
 catkin_package(
 #  INCLUDE_DIRS ros/include
 #  LIBRARIES cob_visual_servoing
-#  CATKIN_DEPENDS other_catkin_pkg
+   CATKIN_DEPENDS controller_manager_msgs sensor_msgs actionlib_msgs
 #  DEPENDS system_lib
 )
 
@@ -63,7 +65,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+#include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 ## Declare a cpp library
 # add_library(cob_visual_servoing
@@ -83,16 +85,18 @@ catkin_package(
 # )
 
 
+include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR}/ros/include)
+include_directories(${orocos_kdl_INCLUDE_DIRS})
 
 #add_executable(cob_visual_servoing_server_pos ros/src/cob_visual_servoing_pos.cpp)
 #target_link_libraries(cob_visual_servoing_server_pos ${catkin_LIBRARIES})
 
 add_executable(cob_visual_servoing_server_vel ros/src/cob_visual_servoing_vel.cpp)
-target_link_libraries(cob_visual_servoing_server_vel ${catkin_LIBRARIES})
+target_link_libraries(cob_visual_servoing_server_vel ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 add_executable(cob_follow_arm ros/src/cob_follow_arm.cpp)
-target_link_libraries(cob_follow_arm ${catkin_LIBRARIES})
+target_link_libraries(cob_follow_arm ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 
 #############
@@ -110,18 +114,20 @@ target_link_libraries(cob_follow_arm ${catkin_LIBRARIES})
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS cob_visual_servoing cob_visual_servoing_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS cob_visual_servoing_server_vel cob_follow_arm
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+install(DIRECTORY ros/include/${PROJECT_NAME}/
+   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+   FILES_MATCHING PATTERN "*.h"
+   PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES

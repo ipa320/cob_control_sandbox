@@ -42,7 +42,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
 
-  <build_depend>rospy</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>
