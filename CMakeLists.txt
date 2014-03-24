@@ -81,6 +81,6 @@ install(PROGRAMS src/dual_arm_script.py src/dual_arm_test.py
 )
 
 
-install(DIRECTORY launch/
+install(DIRECTORY launch
    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
