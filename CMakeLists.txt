@@ -77,7 +77,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 )
 
 install(PROGRAMS src/dual_arm_script.py src/dual_arm_test.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
 
 
