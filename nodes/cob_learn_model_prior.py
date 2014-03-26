@@ -9,7 +9,7 @@ import sys
 import os
 import tf
 
-from cob_articulation_controller.cob_articulation_models_prior import *
+from cob_articulation_models_prior import *
 
 from cob_articulation_controller.msg import *
 from cob_articulation_controller.srv import *

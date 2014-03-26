@@ -15,7 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
 ## - configure this CMakeLists.txt accordingly!!!
 
 
-
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen REQUIRED)
@@ -27,7 +26,7 @@ find_package(orocos_kdl REQUIRED)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -159,15 +158,11 @@ target_link_libraries(cob_cartesian_trajectories_PID ${catkin_LIBRARIES} ${oroco
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS nodes/cart_move_and_pose_record.py nodes/cart_move_and_vel_record.py nodes/cob_articulation_cartcollector_prior.py nodes/cob_articulation_cartcollector.py nodes/cob_learn_model_prior.py nodes/cob_move_articulation_model_prior.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/nodes
 )
 
 install(PROGRAMS scripts/plot_all.py scripts/prior_load.py scripts/prior_save.py scripts/record_models_rotational.py scripts/record_system_behavior.py scripts/record_system_behavior_vel.py scripts/test_articulationModelAction.py scripts/test_learnModelPriorAction.py scripts/test_moveModelPriorAction.py scripts/test_openFridge.py scripts/twiddle_multithreading.py scripts/twiddle.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(PROGRAMS src/cob_articulation_models_prior.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
 )
 
 ## Mark executables and/or libraries for installation
@@ -185,19 +180,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY action
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
 install(DIRECTORY launch
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
-install(DIRECTORY msg
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
-install(DIRECTORY srv
    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
