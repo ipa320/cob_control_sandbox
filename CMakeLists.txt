@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_mmcontroller)
 
 
-find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs geometry_msgs nav_msgs trajectory_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions eigen_conversions brics_actuator control_msgs)
+find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs geometry_msgs nav_msgs trajectory_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions kdl_conversions eigen_conversions brics_actuator control_msgs)
 
 
 find_package(Eigen REQUIRED)
@@ -22,7 +22,7 @@ find_package(orocos_kdl REQUIRED)
 ###################################
 
 catkin_package(
-    CATKIN_DEPENDS rospy roscpp std_msgs geometry_msgs trajectory_msgs nav_msgs control_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions
+    CATKIN_DEPENDS rospy roscpp std_msgs geometry_msgs trajectory_msgs nav_msgs control_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions kdl_conversions
     DEPENDS # TODO
     INCLUDE_DIRS # TODO
     LIBRARIES # TODO

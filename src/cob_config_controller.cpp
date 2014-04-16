@@ -111,8 +111,8 @@ void cob_config_controller::cartTwistCallback(const geometry_msgs::Twist::ConstP
 
 void cob_config_controller::baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-    tf::PoseMsgToKDL(msg->pose.pose, base_odom_);
-    tf::TwistMsgToKDL(msg->twist.twist, base_twist_);
+    tf::poseMsgToKDL(msg->pose.pose, base_odom_);
+    tf::twistMsgToKDL(msg->twist.twist, base_twist_);
 }
 
 
@@ -230,13 +230,13 @@ void cob_config_controller::sendCartPose()
     //F_current.p.x(arm_pose_.p.x() + base_odom_.p.x());
     //F_current.p.y(arm_pose_.p.y() + base_odom_.p.y());
     geometry_msgs::PoseStamped pose;
-    tf::PoseKDLToMsg(F_current, pose.pose);
+    tf::poseKDLToMsg(F_current, pose.pose);
     pose.header.stamp = ros::Time::now();
     cart_position_pub_.publish(pose);
 
     geometry_msgs::Twist twist;
     KDL::Twist twist_sum = arm_vel_.GetTwist() + base_twist_;
-    tf::TwistKDLToMsg(twist_sum, twist);
+    tf::twistKDLToMsg(twist_sum, twist);
     cart_twist_pub_.publish(twist);
 }
 

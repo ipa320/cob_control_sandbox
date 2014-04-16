@@ -35,7 +35,7 @@ private:
     
 public:
     trajectory_manager():
-        as_(n_, "joint_trajectory_action", boost::bind(&trajectory_manager::executeTrajectory, this, _1)),
+        as_(n_, "joint_trajectory_action", boost::bind(&trajectory_manager::executeTrajectory, this, _1), false),
         action_name_("joint_trajectory_action")
     {
         cart_vel_pub_ = n_.advertise<geometry_msgs::Twist>("cart_twist", 1);

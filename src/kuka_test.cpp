@@ -8,7 +8,8 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <cob_srvs/Trigger.h>
 
-#include <tf_conversions/tf_kdl.h>
+//#include <tf_conversions/tf_kdl.h>
+#include <kdl_conversions/kdl_msg.h>
 
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolver.hpp>
@@ -90,7 +91,7 @@ void cartTwistCallback(const geometry_msgs::Twist::ConstPtr& msg)
 
 void baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-    tf::PoseMsgToKDL(msg->pose.pose, basePoseOdom);
+    tf::poseMsgToKDL(msg->pose.pose, basePoseOdom);
     if(RunSyncMM)
     {
         double vx = msg->twist.twist.linear.x;
@@ -186,9 +187,9 @@ KDL::Twist getTrajectoryTwist(double dt, KDL::Frame F_current)
         //DEBUG
         geometry_msgs::PoseArray poses;
         poses.poses.resize(3);
-        tf::PoseKDLToMsg(F_current, poses.poses[0]);
-        tf::PoseKDLToMsg(F_soll, poses.poses[1]);
-        tf::PoseKDLToMsg(F_diff, poses.poses[2]);
+        tf::poseKDLToMsg(F_current, poses.poses[0]);
+        tf::poseKDLToMsg(F_soll, poses.poses[1]);
+        tf::poseKDLToMsg(F_diff, poses.poses[2]);
         debug_cart_pub_.publish(poses);
 
     }

@@ -3,13 +3,15 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <cob_srvs/Trigger.h>
 #include <brics_actuator/JointVelocities.h>
 
-#include <tf_conversions/tf_kdl.h>
+//#include <tf_conversions/tf_kdl.h>
+#include <kdl_conversions/kdl_msg.h>
 
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>

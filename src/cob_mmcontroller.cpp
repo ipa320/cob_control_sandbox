@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <control_msgs/JointTrajectoryControllerState.h>
 #include <cob_srvs/Trigger.h>
@@ -19,7 +20,8 @@
 #include <kdl/rotational_interpolation_sa.hpp>
 #include <kdl/trajectory_segment.hpp>
 
-#include <tf_conversions/tf_kdl.h>
+//#include <tf_conversions/tf_kdl.h>
+#include <kdl_conversions/kdl_msg.h>
 #include <tf/transform_listener.h>
 
 
@@ -121,9 +123,11 @@ void cob_mmcontroller::topicCallback_CartVel(const geometry_msgs::Twist::ConstPt
         ROS_ERROR("%s",ex.what());
     }
     KDL::Twist t;
-    tf::TwistMsgToKDL(*msg, t);
+    tf::twistMsgToKDL(*msg, t);
     KDL::Frame frm_arm_base;
-    tf::TransformTFToKDL(transform_arm_base, frm_arm_base);
+    geometry_msgs::TransformStamped transform_arm_base_msg;
+    tf::transformStampedTFToMsg(transform_arm_base, transform_arm_base_msg);
+    tf::transformMsgToKDL(transform_arm_base_msg.transform, frm_arm_base);
     KDL::Twist t_base(frm_arm_base * t.vel, frm_arm_base * t.rot);
     cmdTwist += t_base/1000;
     m_bNewTwist = true;
