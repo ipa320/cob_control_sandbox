@@ -12,7 +12,8 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <cob_srvs/Trigger.h>
 
-#include <tf_conversions/tf_kdl.h>
+//#include <tf_conversions/tf_kdl.h>
+#include <kdl_conversions/kdl_msg.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
 #include <Eigen/Geometry>

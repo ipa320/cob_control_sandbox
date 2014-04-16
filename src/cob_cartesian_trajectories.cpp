@@ -8,7 +8,8 @@
 #include <visualization_msgs/Marker.h>
 #include <cob_srvs/Trigger.h>
 
-#include <tf_conversions/tf_kdl.h>
+//#include <tf_conversions/tf_kdl.h>
+#include <kdl_conversions/kdl_msg.h>
 
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
@@ -187,8 +188,8 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
 		}		
 		KDL::Frame current;
 		KDL::Frame myhinge;
-		tf::PoseMsgToKDL(msg->pose, current);
-		tf::PoseMsgToKDL(current_hinge.pose, myhinge);
+		tf::poseMsgToKDL(msg->pose, current);
+		tf::poseMsgToKDL(current_hinge.pose, myhinge);
 		KDL::Vector unitz = myhinge.M.UnitZ();
 		std::cout << "Radius because of Hinge: " << (myhinge.p - current.p) << "UnitZ of hinge: " << unitz.z() << "\n";
 		geometry_msgs::Twist twist;
@@ -288,9 +289,9 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 	//DEBUG
 	geometry_msgs::PoseArray poses;
 	poses.poses.resize(3);
-	tf::PoseKDLToMsg(F_current, poses.poses[0]);
-	tf::PoseKDLToMsg(F_soll, poses.poses[1]);
-	tf::PoseKDLToMsg(F_diff, poses.poses[2]);
+	tf::poseKDLToMsg(F_current, poses.poses[0]);
+	tf::poseKDLToMsg(F_soll, poses.poses[1]);
+	tf::poseKDLToMsg(F_diff, poses.poses[2]);
 	debug_cart_pub_.publish(poses);
 	std::cout << "Twist x: " << 0.1 * F_diff.p.x() << " y: " << 0.1 * F_diff.p.y() << "\n";
 	//
@@ -343,9 +344,9 @@ KDL::Twist cob_cartesian_trajectories::getTrajectoryTwist(double dt, Frame F_cur
 	//DEBUG
 	geometry_msgs::PoseArray poses;
 	poses.poses.resize(3);
-	tf::PoseKDLToMsg(F_current, poses.poses[0]);
-	tf::PoseKDLToMsg(F_soll, poses.poses[1]);
-	tf::PoseKDLToMsg(F_diff, poses.poses[2]);
+	tf::poseKDLToMsg(F_current, poses.poses[0]);
+	tf::poseKDLToMsg(F_soll, poses.poses[1]);
+	tf::poseKDLToMsg(F_diff, poses.poses[2]);
 	debug_cart_pub_.publish(poses);
 
 

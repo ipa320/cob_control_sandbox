@@ -55,6 +55,7 @@
   <build_depend>orocos_kdl</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>tf_conversions</build_depend>
+  <build_depend>kdl_conversions</build_depend>
   <build_depend>eigen_conversions</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>

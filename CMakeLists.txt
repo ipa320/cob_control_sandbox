@@ -5,7 +5,7 @@ project(cob_articulation_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions eigen_conversions
+   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions kdl_conversions eigen_conversions
 )
 
 ## Note: The files of this package have been moved from cob_mmcontroller
@@ -104,7 +104,7 @@ catkin_python_setup()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
 catkin_package(
-    CATKIN_DEPENDS rospy roscpp message_runtime std_msgs geometry_msgs sensor_msgs visualization_msgs nav_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions 
+    CATKIN_DEPENDS rospy roscpp message_runtime std_msgs geometry_msgs sensor_msgs visualization_msgs nav_msgs cob_srvs actionlib actionlib_msgs tf tf_conversions kdl_conversions
     DEPENDS # TODO
     INCLUDE_DIRS # TODO
     LIBRARIES # TODO

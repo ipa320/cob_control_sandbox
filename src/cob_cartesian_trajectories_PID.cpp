@@ -276,7 +276,7 @@ void cob_cartesian_trajectories::cartTwistStateCallback(const geometry_msgs::Twi
     aux_twist.linear = msg->linear;
     aux_twist.angular = msg->angular;
     KDL::Twist aux_twist_KDL;
-    tf::TwistMsgToKDL(aux_twist, aux_twist_KDL);
+    tf::twistMsgToKDL(aux_twist, aux_twist_KDL);
     vec_vel_ist.push_back(aux_twist_KDL);
 }
 
@@ -300,8 +300,8 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         }
         KDL::Frame current;
         KDL::Frame myhinge;
-        tf::PoseMsgToKDL(msg->pose, current);
-        tf::PoseMsgToKDL(current_hinge.pose, myhinge);
+        tf::poseMsgToKDL(msg->pose, current);
+        tf::poseMsgToKDL(current_hinge.pose, myhinge);
         KDL::Vector unitz = myhinge.M.UnitZ();
         std::cout << "Radius because of Hinge: " << (myhinge.p - current.p) << "UnitZ of hinge: " << unitz.z() << "\n";
 
@@ -433,9 +433,9 @@ geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_cur
     F_diff.p.z(F_target.p.z()-F_current.p.z());
     geometry_msgs::PoseArray poses;
     poses.poses.resize(3);
-    tf::PoseKDLToMsg(F_current, poses.poses[0]);
-    tf::PoseKDLToMsg(F_target, poses.poses[1]);
-    tf::PoseKDLToMsg(F_diff, poses.poses[2]);
+    tf::poseKDLToMsg(F_current, poses.poses[0]);
+    tf::poseKDLToMsg(F_target, poses.poses[1]);
+    tf::poseKDLToMsg(F_diff, poses.poses[2]);
     debug_cart_pub_.publish(poses);
     //
 
@@ -489,17 +489,23 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
 
     // tf transform F_track_start
     tf::Transform transform_track_start;
-    tf::TransformKDLToTF(F_track_start, transform_track_start);
+    geometry_msgs::Transform transform_track_start_msg;
+    tf::transformKDLToMsg(F_track_start, transform_track_start_msg);
+    tf::transformMsgToTF(transform_track_start_msg, transform_track_start);
     br.sendTransform(tf::StampedTransform(transform_track_start, ros::Time::now(), "/map", "/track_start"));
     
     // tf transform F_track
     tf::Transform transform_track;
-    tf::TransformKDLToTF(F_track, transform_track);
+    geometry_msgs::Transform transform_track_msg;
+    tf::transformKDLToMsg(F_track, transform_track_msg);
+    tf::transformMsgToTF(transform_track_msg, transform_track);
     br.sendTransform(tf::StampedTransform(transform_track, ros::Time::now(), "/track_start", "/track"));
 
     // tf transform F_target
     tf::Transform transform_target;
-    tf::TransformKDLToTF(F_target, transform_target);
+    geometry_msgs::Transform transform_target_msg;
+    tf::transformKDLToMsg(F_target, transform_target_msg);
+    tf::transformMsgToTF(transform_target_msg, transform_target);
     br.sendTransform(tf::StampedTransform(transform_target, ros::Time::now(), "/map", "/target"));
     
 }
@@ -528,7 +534,9 @@ void cob_cartesian_trajectories::getPriStart(KDL::Frame &F_handle)
     }
     // convert to KDL::Frame
     KDL::Frame F_base_link;
-    tf::TransformTFToKDL(transform_map_base, F_base_link);
+    geometry_msgs::TransformStamped transform_map_base_msg;
+    tf::transformStampedTFToMsg(transform_map_base, transform_map_base_msg);
+    tf::transformMsgToKDL(transform_map_base_msg.transform, F_base_link);
 
     // set up articulation frame
     F_articulation.p.x(getParamValue("rigid_position.x"));
@@ -576,7 +584,9 @@ void cob_cartesian_trajectories::getPriStart(KDL::Frame &F_handle)
     std::cout << "F_handle" << "\n" << F_handle << "\n"; //debug
 
     // broadcast F_handle
-    tf::TransformKDLToTF(F_handle, transform_handle);
+    geometry_msgs::Transform transform_handle_msg;
+    tf::transformKDLToMsg(F_handle, transform_handle_msg);
+    tf::transformMsgToTF(transform_handle_msg, transform_handle);
     br.sendTransform(tf::StampedTransform(transform_handle, ros::Time::now(), "/map", "/handle"));
 
 
@@ -617,17 +627,23 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     // tf transform F_track_start
     tf::Transform transform_track_start;
-    tf::TransformKDLToTF(F_track_start, transform_track_start);
+    geometry_msgs::Transform transform_track_start_msg;
+    tf::transformKDLToMsg(F_track_start, transform_track_start_msg);
+    tf::transformMsgToTF(transform_track_start_msg, transform_track_start);
     br.sendTransform(tf::StampedTransform(transform_track_start, ros::Time::now(), "/map", "/track_start"));
     
     // tf transform F_track
     tf::Transform transform_track;
-    tf::TransformKDLToTF(F_track, transform_track);
+    geometry_msgs::Transform transform_track_msg;
+    tf::transformKDLToMsg(F_track, transform_track_msg);
+    tf::transformMsgToTF(transform_track_msg, transform_track);
     br.sendTransform(tf::StampedTransform(transform_track, ros::Time::now(), "/track_start", "/track"));
 
     // tf transform F_target
     tf::Transform transform_target;
-    tf::TransformKDLToTF(F_target, transform_target);
+    geometry_msgs::Transform transform_target_msg;
+    tf::transformKDLToMsg(F_target, transform_target_msg);
+    tf::transformMsgToTF(transform_target_msg, transform_target);
     br.sendTransform(tf::StampedTransform(transform_target, ros::Time::now(), "/map", "/target"));
 }
 
@@ -666,7 +682,9 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     }
     // convert to KDL::Frame
     KDL::Frame F_base_link;
-    tf::TransformTFToKDL(transform_map_base, F_base_link);
+    geometry_msgs::TransformStamped transform_map_base_msg;
+    tf::transformStampedTFToMsg(transform_map_base, transform_map_base_msg);
+    tf::transformMsgToKDL(transform_map_base_msg.transform, F_base_link);
     debug ? (std::cout << "F_base_link" <<  F_base_link << "\n" ) : (std::cout << ""); //debug
 
     // set up articulation frame
@@ -753,7 +771,9 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     std::cout << "F_handle" << "\n" << F_handle << "\n"; //debug
 
     // broadcast F_handle
-    tf::TransformKDLToTF(F_handle, transform_handle);
+    geometry_msgs::Transform transform_handle_msg;
+    tf::transformKDLToMsg(F_handle, transform_handle_msg);
+    tf::transformMsgToTF(transform_handle_msg, transform_handle);
     br.sendTransform(tf::StampedTransform(transform_handle, ros::Time::now(), "/map", "/handle"));
     
     // calculate, check and set up rot_radius TODO: abort if tolerance is exceeded
@@ -894,7 +914,9 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     F_twist.p.y(twist.linear.y);
     F_twist.p.z(twist.linear.z);
     F_twist.M = KDL::Rotation::RPY(twist.angular.x, twist.angular.y, twist.angular.z);
-    tf::TransformKDLToTF(F_twist, transform_twist);
+    geometry_msgs::Transform transform_twist_msg;
+    tf::transformKDLToMsg(F_twist, transform_twist_msg);
+    tf::transformMsgToTF(transform_twist_msg, transform_twist);
     br.sendTransform(tf::StampedTransform(transform_twist, ros::Time::now(), "/sdh_tip_link", "/twist"));
 
     return twist;
