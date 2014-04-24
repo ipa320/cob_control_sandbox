@@ -16,8 +16,8 @@ rospy.sleep(1.0)
 cob_lbr_client = actionlib.SimpleActionClient('/lbr_controller/joint_trajectory_action', FollowJointTrajectoryAction)
 lwr_client = actionlib.SimpleActionClient('/lwr/lbr_controller/joint_trajectory_action', FollowJointTrajectoryAction)
 
-cob_sdh_client = actionlib.SimpleActionClient('/sdh_controller/joint_trajectory_action', FollowJointTrajectoryAction)
-lwr_sdh_client = actionlib.SimpleActionClient('/lwr/sdh_controller/joint_trajectory_action', FollowJointTrajectoryAction)
+cob_sdh_client = actionlib.SimpleActionClient('/gripper_controller/joint_trajectory_action', FollowJointTrajectoryAction)
+lwr_sdh_client = actionlib.SimpleActionClient('/lwr/gripper_controller/joint_trajectory_action', FollowJointTrajectoryAction)
 
 rospy.sleep(2.0)
 
