@@ -1,0 +1,4 @@
+---
+bool success
+string error_message
+cob_articulation_controller/ModelMsg model
