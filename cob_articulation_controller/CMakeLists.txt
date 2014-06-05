@@ -5,7 +5,7 @@ project(cob_articulation_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-   rospy roscpp message_generation std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions kdl_conversions eigen_conversions
+   rospy roscpp message_generation cmake_modules std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions kdl_conversions eigen_conversions
 )
 
 ## Note: The files of this package have been moved from cob_mmcontroller
@@ -131,11 +131,11 @@ include_directories(${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS})
 #add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
 
 add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
-add_dependencies(cob_cartesian_trajectories ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(cob_cartesian_trajectories ${${PROJECT_NAME}_EXPORTED_TARGETS})
 target_link_libraries(cob_cartesian_trajectories ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
-add_dependencies(cob_cartesian_trajectories_PID ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(cob_cartesian_trajectories_PID ${${PROJECT_NAME}_EXPORTED_TARGETS})
 target_link_libraries(cob_cartesian_trajectories_PID ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_mmcontroller)
 
 
-find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs geometry_msgs nav_msgs trajectory_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions kdl_conversions eigen_conversions brics_actuator control_msgs)
+find_package(catkin REQUIRED COMPONENTS rospy roscpp cmake_modules std_msgs geometry_msgs nav_msgs trajectory_msgs cob_srvs actionlib actionlib_msgs kdl_parser tf tf_conversions kdl_conversions eigen_conversions brics_actuator control_msgs)
 
 
 find_package(Eigen REQUIRED)
