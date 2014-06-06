@@ -131,10 +131,12 @@ include_directories(${catkin_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS})
 #add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
 
 add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
+add_dependencies(cob_cartesian_trajectories ${PROJECT_NAME}_gencpp)
 add_dependencies(cob_cartesian_trajectories ${${PROJECT_NAME}_EXPORTED_TARGETS})
 target_link_libraries(cob_cartesian_trajectories ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
+add_dependencies(cob_cartesian_trajectories_PID ${PROJECT_NAME}_gencpp)
 add_dependencies(cob_cartesian_trajectories_PID ${${PROJECT_NAME}_EXPORTED_TARGETS})
 target_link_libraries(cob_cartesian_trajectories_PID ${catkin_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
