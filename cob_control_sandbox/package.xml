@@ -1,0 +1,32 @@
+<package>
+  <name>cob_control_sandbox</name>
+  <version>0.5.0</version>
+  <description>cob_control_sandbox meta package</description>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+
+  <license>BSD</license>
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_control_sandbox</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_control_sandbox/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_control_sandbox</url>
+
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>cob_mmcontroller</run_depend>
+  <run_depend>cob_articulation_controller</run_depend>
+  <run_depend>cob_visual_servoing</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+
+ <export>
+  <metapackage/>
+ </export>
+
+</package>
